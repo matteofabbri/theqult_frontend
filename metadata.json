@@ -1,0 +1,5 @@
+{
+  "name": "The Qult 2",
+  "description": "A feature-rich, Reddit-like platform built with React, TypeScript, and Tailwind CSS. It allows users to register, create boards, make markdown posts with media uploads, vote, and comment. All data is persisted in the browser's local storage.",
+  "requestFramePermissions": []
+}
