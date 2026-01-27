@@ -1,0 +1,24 @@
+ip_address,country_code,organization,city
+8.8.8.8,US,Google LLC,Mountain View
+1.1.1.1,US,Cloudflare Inc.,San Francisco
+2.16.0.0,EU,Akamai Technologies,Various
+31.14.248.0,IT,Telecom Italia,Rome
+37.159.0.0,IT,Iliad Italia,Milan
+151.1.0.0,IT,Wind Tre S.p.A.,Naples
+93.32.0.0,IT,Fastweb SpA,Turin
+176.31.0.0,FR,OVH SAS,Roubaix
+80.12.0.0,FR,Orange,Paris
+51.15.0.0,FR,Scaleway,Marseille
+82.224.0.0,FR,Free SAS,Lyon
+62.153.0.0,DE,Deutsche Telekom,Berlin
+195.201.0.0,DE,Hetzner Online,Gunzenhausen
+141.0.0.0,DE,Global Dots,Frankfurt
+81.130.0.0,GB,British Telecommunications,London
+212.58.224.0,GB,BBC,Tadworth
+2.24.0.0,GB,Sky UK,Manchester
+133.0.0.0,JP,Japan Network Information Center,Tokyo
+118.0.0.0,JP,KDDI Corporation,Osaka
+210.130.0.0,JP,Internet Initiative Japan,Yokohama
+208.67.222.222,US,OpenDNS,San Jose
+185.199.108.0,US,GitHub Inc.,Various
+95.141.32.0,IT,Aruba S.p.A.,Arezzo

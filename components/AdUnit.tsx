@@ -8,6 +8,7 @@ interface AdUnitProps {
   placement: 'banner' | 'sidebar';
 }
 
+
 const AdUnit: React.FC<AdUnitProps> = ({ ad, placement }) => {
   const { trackAdImpression, trackAdClick } = useData();
 
