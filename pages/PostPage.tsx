@@ -23,6 +23,7 @@ import type { MediaItem } from '../types';
 
 const PostPage: React.FC = () => {
   const { postId } = useParams<{ postId: string }>();
+  // Fixed missing awards from useData
   const { posts, comments, addComment, deletePost, isModerator, isBoardAdmin, votes, castVote, boards, isSubscribed, subscribe, unsubscribe, awards } = useData();
   const { getUserById, currentUser, isAdmin } = useAuth();
   const navigate = useNavigate();

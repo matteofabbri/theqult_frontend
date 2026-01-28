@@ -1,13 +1,16 @@
+
 # Modello: Advertisement
 
-Sistema pubblicitario integrato.
+Sistema pubblicitario integrato nelle community.
 
-## Modelli di Billing
-- `CPC` (Cost Per Click): Il budget cala solo al click dell'utente.
-- `CPM` (Cost Per Mille): Il budget cala ogni 1000 visualizzazioni.
+## Struttura
+- `title`: Titolo dell'annuncio.
+- `content`: Testo descrittivo breve.
+- `imageUrl`: Immagine visualizzata nel banner o nella sidebar.
+- `linkUrl`: Destinazione esterna del click.
 
 ## Stati
-- `pending`: In attesa di approvazione admin.
-- `approved` / `active`: In rotazione nelle board.
-- `rejected`: Rifiutata (il budget residuo viene rimborsato all'utente).
-- `completed`: Budget esaurito.
+- `pending`: In attesa di approvazione da parte di un admin della Board specifica.
+- `active`: In rotazione e visibile agli utenti.
+- `rejected`: Rifiutata dall'admin.
+- `completed`: Rimossa manualmente o per fine campagna.

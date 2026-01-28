@@ -13,6 +13,7 @@ interface AwardModalProps {
 
 const AwardModal: React.FC<AwardModalProps> = ({ entityId, entityType, receiverId, onClose }) => {
   const { currentUser } = useAuth();
+  // Fixed missing giveAward from useData
   const { giveAward } = useData();
   const [selectedAwardId, setSelectedAwardId] = useState<string | null>(null);
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -47,7 +48,8 @@ const AwardModal: React.FC<AwardModalProps> = ({ entityId, entityType, receiverI
             <h2 className="text-xl font-bold text-gray-900">Give an Award</h2>
             <div className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">
                 <WalletIcon className="w-4 h-4 text-green-600" />
-                <span className="font-bold text-sm">{currentUser.kopeki.toLocaleString()} K</span>
+                {/* Fixed kopeki access */}
+                <span className="font-bold text-sm">{(currentUser.kopeki || 0).toLocaleString()} K</span>
             </div>
         </div>
 

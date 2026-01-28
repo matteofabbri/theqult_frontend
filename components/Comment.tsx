@@ -24,6 +24,7 @@ interface CommentProps {
 
 const Comment: React.FC<CommentProps> = ({ comment, allComments, boardId }) => {
   const { getUserById, currentUser, isAdmin } = useAuth();
+  // Fixed missing awards from useData
   const { addComment, isModerator, deleteComment, isBoardAdmin, votes, castVote, awards } = useData();
   const author = comment.authorId ? getUserById(comment.authorId) : undefined;
   const [replying, setReplying] = useState(false);

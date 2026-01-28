@@ -1,11 +1,12 @@
+
 # Modello: Message
 
 Sistema di comunicazione privata inter-utente.
 
 ## Tipi di Messaggio
-- `text`: Messaggio standard (può essere criptato se il destinatario ha una `publicKey`).
-- `board_invite`: Contiene metadati per invitare un utente a una board chiusa.
-- `notification`: Messaggio di sistema non interattivo.
+- `text`: Messaggio standard. Se il destinatario ha una `publicKey` impostata, il contenuto viene salvato in formato cifrato.
+- `board_invite`: Messaggio speciale che contiene il nome e l'ID di una board. Il destinatario può cliccare su "Accetta" per essere aggiunto agli utenti autorizzati.
+- `notification`: Messaggio di sistema per informare l'utente di eventi (es. invito accettato).
 
-## Funzionalità Economiche
-- `kopekiAmount`: Se presente, il messaggio funge da transazione P2P (trasferimento di denaro in chat).
+## Sicurezza
+- **E2EE**: Utilizza la `publicKey` dell'utente per garantire che solo il destinatario possa decifrare il testo.

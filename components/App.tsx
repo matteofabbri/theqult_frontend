@@ -22,11 +22,7 @@ import MessagesPage from '../pages/MessagesPage';
 import PrivacyPolicyPage from '../pages/PrivacyPolicyPage';
 import CookiePolicyPage from '../pages/CookiePolicyPage';
 import ContactPage from '../pages/ContactPage';
-import TransactionsPage from '../pages/TransactionsPage';
-import DepositPage from '../pages/DepositPage';
-import WithdrawPage from '../pages/WithdrawPage';
 import AdminAdsPage from '../pages/AdminAdsPage';
-import VerifyPage from '../pages/VerifyPage';
 
 const App: React.FC = () => {
   return (
@@ -49,10 +45,6 @@ const App: React.FC = () => {
           <Route path="/u/:username/post/:postId" element={<ProfilePostPage />} />
           <Route path="/u/:username/post/:postId/edit" element={<EditProfilePostPage />} />
           <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/settings/transactions" element={<TransactionsPage />} />
-          <Route path="/wallet/deposit" element={<DepositPage />} />
-          <Route path="/wallet/withdraw" element={<WithdrawPage />} />
-          <Route path="/verify" element={<VerifyPage />} />
           <Route path="/messages" element={<MessagesPage />} />
           <Route path="/messages/:username" element={<MessagesPage />} />
           <Route path="/admin/ads" element={<AdminAdsPage />} />

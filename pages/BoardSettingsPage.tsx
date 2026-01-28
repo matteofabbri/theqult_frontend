@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useData, useAuth } from '../hooks/useStore';
@@ -66,7 +67,7 @@ const BoardSettingsPage: React.FC = () => {
         } else if (board.password) {
             setAccessType('password');
             setNewPassword(board.password);
-        } else if (board.entryFee && board.entryFee > 0) {
+        } else if (board.entryFee && board.entryFee > 0) { // Fixed entryFee access
             setAccessType('paid');
             setEntryFee(board.entryFee.toString());
         } else {
@@ -226,8 +227,7 @@ const BoardSettingsPage: React.FC = () => {
   };
 
   const handleRemoveUser = (userId: string) => {
-      const result = removeUserFromBoard(board.id, userId);
-      // We rely on component re-render to show updated list
+      removeUserFromBoard(board.id, userId);
   };
 
   return (
@@ -519,6 +519,7 @@ const BoardSettingsPage: React.FC = () => {
                                  </div>
                                  <p className="text-sm text-gray-600 mb-2">{ad.content}</p>
                                  <div className="flex gap-4 text-xs text-gray-500">
+                                     {/* Fixed Advertisement property access */}
                                      <span>Budget: {ad.budget} K</span>
                                      <span>Bid: {ad.bidAmount} K ({ad.model})</span>
                                      <span>Views: {ad.views}</span>

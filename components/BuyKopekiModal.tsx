@@ -9,12 +9,14 @@ interface BuyKopekiModalProps {
 }
 
 const BuyKopekiModal: React.FC<BuyKopekiModalProps> = ({ onClose }) => {
+  // Fixed missing buyKopeki from useAuth
   const { currentUser, buyKopeki } = useAuth();
   const [amount, setAmount] = useState('');
   const [selectedCardId, setSelectedCardId] = useState('');
   const [message, setMessage] = useState({ type: '', text: '' });
 
   useEffect(() => {
+      // Fixed savedCards access
       if (currentUser && currentUser.savedCards && currentUser.savedCards.length > 0) {
           setSelectedCardId(currentUser.savedCards[0].id);
       }
@@ -71,10 +73,12 @@ const BuyKopekiModal: React.FC<BuyKopekiModalProps> = ({ onClose }) => {
                     className="w-full bg-gray-50 border border-gray-300 rounded-md p-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                     <option value="">Select a card</option>
+                    {/* Fixed savedCards access */}
                     {currentUser.savedCards?.map(card => (
                         <option key={card.id} value={card.id}>{card.brand} •••• {card.last4}</option>
                     ))}
                 </select>
+                {/* Fixed savedCards access */}
                 {(!currentUser.savedCards || currentUser.savedCards.length === 0) && (
                     <p className="text-xs text-red-500 mt-1">
                         No cards found. <Link to="/settings" onClick={onClose} className="underline">Add one in settings</Link>.

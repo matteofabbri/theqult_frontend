@@ -1,9 +1,8 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useData } from '../hooks/useStore';
-import { CloseIcon, ChevronRightIcon, ChevronLeftIcon, CheckIcon } from './Icons';
+import { CloseIcon, LockIcon, UsersIcon, CheckIcon } from './Icons';
 import { useNavigate } from 'react-router-dom';
-
 
 interface CreateBoardModalProps {
   onClose: () => void;
@@ -12,103 +11,26 @@ interface CreateBoardModalProps {
 const CreateBoardModal: React.FC<CreateBoardModalProps> = ({ onClose }) => {
   const navigate = useNavigate();
   const { createBoard } = useData();
-  const [step, setStep] = useState(1);
   const [error, setError] = useState('');
-
-  // Step 1: Basics
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-
-  // Step 2: Visuals
-  const [iconUrl, setIconUrl] = useState('');
-  const [bannerUrl, setBannerUrl] = useState('');
-  const iconInputRef = useRef<HTMLInputElement>(null);
-  const bannerInputRef = useRef<HTMLInputElement>(null);
-
-  // Step 3: Permissions
-  const [accessType, setAccessType] = useState<'public' | 'password' | 'invite' | 'paid'>('public');
+  const [accessType, setAccessType] = useState<'public' | 'password' | 'invite'>('public');
   const [password, setPassword] = useState('');
-  const [entryFee, setEntryFee] = useState('');
   const [allowAnonymousComments, setAllowAnonymousComments] = useState(true);
   const [allowAnonymousPosts, setAllowAnonymousPosts] = useState(true);
-
-  // Logic to disable anonymous options if not public
-  const isNotPublic = accessType !== 'public';
-
-  useEffect(() => {
-      if (isNotPublic) {
-          setAllowAnonymousComments(false);
-          setAllowAnonymousPosts(false);
-      }
-  }, [isNotPublic]);
-
-  const fileToDataUrl = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-    });
-  };
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, setter: (val: string) => void) => {
-    const file = e.target.files?.[0];
-    if (file) {
-        if (!file.type.startsWith('image/')) {
-            setError('Please select a valid image file.');
-            return;
-        }
-        try {
-            const dataUrl = await fileToDataUrl(file);
-            setter(dataUrl);
-            setError('');
-        } catch (err) {
-            setError('Failed to read image file.');
-        }
-    }
-  };
-
-  const handleNext = (e?: React.FormEvent) => {
-      if (e) e.preventDefault();
-      setError('');
-
-      if (step === 1) {
-          if (!name.trim()) {
-              setError('Board name is required.');
-              return;
-          }
-      }
-      setStep(prev => prev + 1);
-  };
-
-  const handleBack = () => {
-      setError('');
-      setStep(prev => prev - 1);
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    
-    let isInviteOnly = false;
-    let finalPassword = undefined;
-    let finalEntryFee = undefined;
 
-    if (accessType === 'invite') {
-        isInviteOnly = true;
-    } else if (accessType === 'password') {
-        if (!password) {
-            setError('Password is required for password-protected boards.');
-            return;
-        }
-        finalPassword = password;
-    } else if (accessType === 'paid') {
-        const fee = parseInt(entryFee, 10);
-        if (isNaN(fee) || fee <= 0) {
-            setError('Please enter a valid entry fee.');
-            return;
-        }
-        finalEntryFee = fee;
+    if (!name.trim()) {
+        setError('Board name is required.');
+        return;
+    }
+
+    if (accessType === 'password' && !password) {
+        setError('Password is required for password-protected boards.');
+        return;
     }
 
     const { success, message } = createBoard(
@@ -116,11 +38,8 @@ const CreateBoardModal: React.FC<CreateBoardModalProps> = ({ onClose }) => {
         description.trim(), 
         allowAnonymousComments, 
         allowAnonymousPosts, 
-        finalPassword, 
-        isInviteOnly, 
-        finalEntryFee,
-        iconUrl,
-        bannerUrl
+        accessType === 'password' ? password : undefined, 
+        accessType === 'invite'
     );
 
     if (success) {
@@ -131,193 +50,157 @@ const CreateBoardModal: React.FC<CreateBoardModalProps> = ({ onClose }) => {
     }
   };
 
-  const renderStepIndicator = () => (
-      <div className="flex items-center justify-center space-x-2 mb-6">
-          {[1, 2, 3].map(i => (
-              <div key={i} className={`h-2 rounded-full transition-all duration-300 ${i === step ? 'w-8 bg-primary' : i < step ? 'w-2 bg-primary' : 'w-2 bg-gray-200'}`} />
-          ))}
-      </div>
-  );
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-8 w-full max-w-md relative border border-gray-200 max-h-[90vh] overflow-y-auto shadow-2xl">
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700">
-          <CloseIcon className="w-6 h-6" />
-        </button>
-        
-        <h2 className="text-2xl font-bold text-gray-900 text-center mb-1">Create a Board</h2>
-        <p className="text-center text-gray-500 text-sm mb-4">Step {step} of 3</p>
-        
-        {renderStepIndicator()}
-        
-        {error && <p className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-md mb-4 text-sm">{error}</p>}
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+      <div className="bg-white rounded-2xl w-full max-w-lg relative border border-gray-200 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        {/* Header */}
+        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+          <div>
+            <h2 className="text-2xl font-black text-gray-900 tracking-tight">Create a Community</h2>
+            <p className="text-sm text-gray-500">Build your corner of the qult.</p>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-700 transition-colors p-2 hover:bg-gray-100 rounded-full">
+            <CloseIcon className="w-6 h-6" />
+          </button>
+        </div>
 
-        <form onSubmit={step === 3 ? handleSubmit : handleNext}>
-            
-            {/* STEP 1: BASICS */}
-            {step === 1 && (
-                <div className="space-y-4 animate-fadeIn">
-                    <div>
-                        <label className="block text-gray-700 font-semibold mb-2" htmlFor="boardName">Name <span className="text-red-500">*</span></label>
-                        <input
-                            type="text"
-                            id="boardName"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            className="w-full bg-gray-50 border border-gray-300 rounded-md p-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
-                            placeholder="e.g., programming"
-                            autoFocus
-                        />
-                        <p className="text-xs text-gray-500 mt-1">This will be the URL: /b/{name || '...'}</p>
-                    </div>
-                    <div>
-                        <label className="block text-gray-700 font-semibold mb-2" htmlFor="description">Description</label>
-                        <textarea
-                            id="description"
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            className="w-full bg-gray-50 border border-gray-300 rounded-md p-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary h-32 resize-none"
-                            placeholder="What is this community about?"
-                        />
-                    </div>
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-8">
+            {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-semibold animate-in fade-in slide-in-from-top-1 duration-200">
+                    {error}
                 </div>
             )}
 
-            {/* STEP 2: VISUALS */}
-            {step === 2 && (
-                <div className="space-y-6 animate-fadeIn">
-                    <div className="text-center">
-                        <h3 className="font-bold text-gray-800">Add Visuals</h3>
-                        <p className="text-sm text-gray-500">Make your board stand out. You can skip this.</p>
-                    </div>
-
-                    <div className="flex items-center gap-4 p-3 border border-gray-200 rounded-lg">
-                        <div className={`w-16 h-16 rounded-full bg-gray-200 flex-shrink-0 overflow-hidden border ${!iconUrl ? 'flex items-center justify-center text-gray-400' : ''}`}>
-                            {iconUrl ? <img src={iconUrl} alt="Icon" className="w-full h-full object-cover" /> : <span>Icon</span>}
-                        </div>
-                        <div className="flex-1">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Board Icon</label>
-                            <div className="flex gap-2">
-                                <button type="button" onClick={() => iconInputRef.current?.click()} className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded transition-colors">Upload</button>
-                                {iconUrl && <button type="button" onClick={() => setIconUrl('')} className="text-xs text-red-500 hover:text-red-700 px-2">Remove</button>}
+            <form id="create-board-form" onSubmit={handleSubmit} className="space-y-8">
+                {/* Basic Info Section */}
+                <section className="space-y-4">
+                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">Basic Information</h3>
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">Name</label>
+                            <div className="relative">
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">b/</span>
+                                <input 
+                                    type="text" 
+                                    value={name} 
+                                    onChange={e => setName(e.target.value.replace(/\s+/g, '_').toLowerCase())} 
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 pl-8 text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-bold transition-all" 
+                                    placeholder="community_name" 
+                                    required 
+                                />
                             </div>
-                            <input type="file" ref={iconInputRef} onChange={(e) => handleImageUpload(e, setIconUrl)} accept="image/*" className="hidden" />
+                            <p className="text-[10px] text-gray-400 mt-1.5 ml-1">Names cannot have spaces. Underscores are encouraged.</p>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">Description</label>
+                            <textarea 
+                                value={description} 
+                                onChange={e => setDescription(e.target.value)} 
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-800 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none transition-all" 
+                                placeholder="What's this community about?"
+                                rows={3}
+                            />
                         </div>
                     </div>
+                </section>
 
-                    <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700">Banner Image</label>
-                        <div 
-                            className="h-24 w-full rounded-md bg-gray-100 bg-cover bg-center border border-gray-200 flex items-center justify-center text-gray-400 text-sm cursor-pointer hover:bg-gray-200 transition-colors relative group"
-                            style={{ backgroundImage: bannerUrl ? `url(${bannerUrl})` : 'none' }}
-                            onClick={() => bannerInputRef.current?.click()}
-                        >
-                            {!bannerUrl && <span>Click to upload banner</span>}
-                            {bannerUrl && (
-                                <div className="absolute inset-0 bg-black/40 hidden group-hover:flex items-center justify-center text-white text-xs font-bold rounded-md">Change</div>
-                            )}
-                        </div>
-                        <div className="flex justify-end">
-                             {bannerUrl && <button type="button" onClick={() => setBannerUrl('')} className="text-xs text-red-500 hover:text-red-700">Remove Banner</button>}
-                        </div>
-                        <input type="file" ref={bannerInputRef} onChange={(e) => handleImageUpload(e, setBannerUrl)} accept="image/*" className="hidden" />
-                    </div>
-                </div>
-            )}
-
-            {/* STEP 3: ACCESS */}
-            {step === 3 && (
-                <div className="space-y-6 animate-fadeIn">
-                    <div className="text-center">
-                        <h3 className="font-bold text-gray-800">Privacy & Access</h3>
-                        <p className="text-sm text-gray-500">Who can see and post on this board?</p>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
+                {/* Access & Privacy Section */}
+                <section className="space-y-4">
+                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">Privacy & Access</h3>
+                    <div className="grid grid-cols-1 gap-3">
                         {[
-                            { id: 'public', label: 'Public', desc: 'Anyone can view' },
-                            { id: 'password', label: 'Password', desc: 'Requires key' },
-                            { id: 'invite', label: 'Invite', desc: 'Private list' },
-                            { id: 'paid', label: 'Paid', desc: 'Fee to enter' }
-                        ].map(opt => (
-                            <label key={opt.id} className={`border rounded-lg p-3 cursor-pointer transition-all ${accessType === opt.id ? 'border-primary bg-orange-50 ring-1 ring-primary' : 'border-gray-200 hover:border-gray-300'}`}>
-                                <div className="flex items-center justify-between mb-1">
-                                    <span className="font-semibold text-sm text-gray-800">{opt.label}</span>
-                                    <input type="radio" name="accessType" checked={accessType === opt.id} onChange={() => setAccessType(opt.id as any)} className="accent-primary" />
+                            { id: 'public', label: 'Public', desc: 'Anyone can view and post.', icon: <UsersIcon className="w-4 h-4" /> },
+                            { id: 'password', label: 'Password', desc: 'Protected by a secret key.', icon: <LockIcon className="w-4 h-4" /> },
+                            { id: 'invite', label: 'Invite Only', desc: 'Manual approval required.', icon: <UsersIcon className="w-4 h-4" /> }
+                        ].map((type) => (
+                            <label key={type.id} className={`flex items-center gap-4 p-4 border rounded-xl cursor-pointer transition-all ${accessType === type.id ? 'bg-primary/5 border-primary ring-1 ring-primary' : 'bg-white border-gray-200 hover:border-gray-300'}`}>
+                                <input 
+                                    type="radio" 
+                                    name="accessType" 
+                                    checked={accessType === type.id} 
+                                    onChange={() => setAccessType(type.id as any)} 
+                                    className="accent-primary w-4 h-4" 
+                                />
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-sm font-black text-gray-900">{type.label}</span>
+                                        <div className="text-gray-400">{type.icon}</div>
+                                    </div>
+                                    <p className="text-xs text-gray-500 font-medium">{type.desc}</p>
                                 </div>
-                                <span className="text-xs text-gray-500">{opt.desc}</span>
                             </label>
                         ))}
                     </div>
 
                     {accessType === 'password' && (
-                        <div className="animate-fadeIn">
-                            <label className="block text-gray-700 text-sm font-bold mb-1">Set Password</label>
-                            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border border-gray-300 rounded p-2 text-sm focus:ring-primary focus:border-primary" placeholder="Secret key" />
+                        <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-200 animate-in zoom-in-95 duration-200 mt-3">
+                            <label className="block text-xs font-black text-yellow-800 uppercase mb-2">Set Board Password</label>
+                            <input 
+                                type="text" 
+                                value={password} 
+                                onChange={e => setPassword(e.target.value)} 
+                                className="w-full bg-white border border-yellow-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-yellow-500/20 focus:border-yellow-600 outline-none" 
+                                placeholder="Enter secret password..." 
+                            />
                         </div>
                     )}
+                </section>
 
-                    {accessType === 'paid' && (
-                        <div className="animate-fadeIn">
-                            <label className="block text-gray-700 text-sm font-bold mb-1">Entry Fee (Kopeki)</label>
-                            <input type="number" value={entryFee} onChange={(e) => setEntryFee(e.target.value)} className="w-full border border-gray-300 rounded p-2 text-sm focus:ring-primary focus:border-primary" placeholder="e.g. 100" min="1" />
-                        </div>
-                    )}
-
-                    <div className="border-t border-gray-100 pt-4 space-y-3">
-                        <label className={`flex items-center ${isNotPublic ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
-                            <div className={`w-5 h-5 border rounded flex items-center justify-center ${allowAnonymousPosts ? 'bg-primary border-primary' : 'border-gray-300'}`}>
-                                {allowAnonymousPosts && <CheckIcon className="w-3 h-3 text-white" />}
+                {/* Community Rules Section */}
+                <section className="space-y-4">
+                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">Community Rules</h3>
+                    <div className="space-y-3 bg-gray-50 rounded-xl p-4 border border-gray-100">
+                        <label className="flex items-center justify-between cursor-pointer group">
+                            <div className="flex-1">
+                                <span className="block text-sm font-bold text-gray-700 group-hover:text-primary transition-colors">Allow Anonymous Posts</span>
+                                <span className="text-[10px] text-gray-400">Users can post without showing their username.</span>
                             </div>
-                            <input type="checkbox" checked={allowAnonymousPosts} onChange={(e) => setAllowAnonymousPosts(e.target.checked)} className="hidden" disabled={isNotPublic} />
-                            <span className="ml-3 text-sm text-gray-700">Allow anonymous posts</span>
+                            <input 
+                                type="checkbox" 
+                                checked={allowAnonymousPosts} 
+                                onChange={e => setAllowAnonymousPosts(e.target.checked)} 
+                                className="w-5 h-5 accent-primary rounded cursor-pointer"
+                            />
                         </label>
-                        
-                        <label className={`flex items-center ${isNotPublic ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
-                            <div className={`w-5 h-5 border rounded flex items-center justify-center ${allowAnonymousComments ? 'bg-primary border-primary' : 'border-gray-300'}`}>
-                                {allowAnonymousComments && <CheckIcon className="w-3 h-3 text-white" />}
+                        <div className="h-px bg-gray-200/50" />
+                        <label className="flex items-center justify-between cursor-pointer group">
+                            <div className="flex-1">
+                                <span className="block text-sm font-bold text-gray-700 group-hover:text-primary transition-colors">Allow Anonymous Comments</span>
+                                <span className="text-[10px] text-gray-400">Enable guests or hidden identities in threads.</span>
                             </div>
-                            <input type="checkbox" checked={allowAnonymousComments} onChange={(e) => setAllowAnonymousComments(e.target.checked)} className="hidden" disabled={isNotPublic} />
-                            <span className="ml-3 text-sm text-gray-700">Allow anonymous comments</span>
+                            <input 
+                                type="checkbox" 
+                                checked={allowAnonymousComments} 
+                                onChange={e => setAllowAnonymousComments(e.target.checked)} 
+                                className="w-5 h-5 accent-primary rounded cursor-pointer"
+                            />
                         </label>
-                        {isNotPublic && <p className="text-xs text-yellow-600 bg-yellow-50 p-2 rounded">Anonymous interactions are only available for public boards.</p>}
                     </div>
-                </div>
-            )}
+                </section>
+            </form>
+        </div>
 
-            {/* ACTIONS */}
-            <div className="flex items-center justify-between mt-8 pt-4 border-t border-gray-100">
-                {step > 1 ? (
-                    <button type="button" onClick={handleBack} className="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-800 flex items-center gap-1">
-                        <ChevronLeftIcon className="w-4 h-4" /> Back
-                    </button>
-                ) : (
-                    <div></div> // Spacer
-                )}
-
-                <button 
-                    type="submit" 
-                    className={`px-6 py-2 rounded-full font-bold text-white transition-all shadow-md flex items-center gap-2 ${step === 3 ? 'bg-green-600 hover:bg-green-700' : 'bg-primary hover:opacity-90'}`}
-                >
-                    {step === 3 ? (
-                        <>Create Board <CheckIcon className="w-4 h-4" /></>
-                    ) : (
-                        <>Next <ChevronRightIcon className="w-4 h-4" /></>
-                    )}
-                </button>
-            </div>
-        </form>
+        {/* Footer */}
+        <div className="p-6 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50">
+            <button 
+                type="button" 
+                onClick={onClose} 
+                className="px-6 py-2.5 text-sm font-bold text-gray-500 hover:text-gray-800 transition-colors"
+            >
+                Cancel
+            </button>
+            <button 
+                type="submit" 
+                form="create-board-form"
+                className="bg-primary text-white font-black py-2.5 px-10 rounded-full hover:bg-orange-600 transition-all shadow-lg shadow-primary/20 active:scale-95 disabled:opacity-50 disabled:grayscale"
+                disabled={!name.trim()}
+            >
+                Create Board
+            </button>
+        </div>
       </div>
-      <style>{`
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fadeIn {
-            animation: fadeIn 0.3s ease-out forwards;
-        }
-      `}</style>
     </div>
   );
 };

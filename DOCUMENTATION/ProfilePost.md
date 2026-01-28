@@ -1,10 +1,9 @@
+
 # Modello: ProfilePost
 
-Contenuti pubblicati direttamente sul profilo dell'utente.
+Contenuti pubblicati direttamente sul profilo dell'utente invece che in una Board specifica.
 
-## Monetizzazione
-- `price`: Costo in Kopeki per visualizzare il contenuto.
-- `unlockedUserIds`: Lista di ID utenti che hanno pagato per questo post.
-- `isExclusive`: (Legacy) Indica se il post è riservato agli abbonati del profilo.
-
-I ProfilePost permettono ai creatori di monetizzare i propri contenuti senza passare per una Board specifica.
+## Caratteristiche
+- Appaiono nel feed globale e nella pagina del profilo dell'autore.
+- Possono contenere allegati multimediali multipli.
+- Supportano commenti e voti come i post standard.

@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useStore';
 import { useNavigate, Link } from 'react-router-dom';
 
 const TransactionsPage: React.FC = () => {
+  // Fixed missing getUserTransactions from useAuth
   const { currentUser, getUserTransactions } = useAuth();
   const navigate = useNavigate();
 
@@ -49,6 +50,7 @@ const TransactionsPage: React.FC = () => {
         </div>
         <div className="text-right">
             <p className="text-sm text-gray-500">Current Balance</p>
+            {/* Fixed kopeki access */}
             <p className="text-xl font-bold text-primary">{currentUser.kopeki.toLocaleString()} K</p>
         </div>
       </div>

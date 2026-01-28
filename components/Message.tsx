@@ -23,7 +23,8 @@ const Message: React.FC<MessageProps> = ({ message, author, isCurrentUser }) => 
             : 'bg-gray-200 text-gray-800';
     
     const hasMedia = message.media && message.media.length > 0;
-    const hasKopeki = message.kopekiAmount && message.kopekiAmount > 0;
+    // Fixed kopekiAmount access
+    const hasKopeki = !!(message.kopekiAmount && message.kopekiAmount > 0);
     const isInvite = message.type === 'board_invite';
 
     const displayContent = useMemo(() => {
@@ -34,9 +35,7 @@ const Message: React.FC<MessageProps> = ({ message, author, isCurrentUser }) => 
     }, [message.content, message.isEncrypted]);
 
     const handleAccept = () => {
-        if (!isCurrentUser) { // Only the recipient (who sees this as 'not current user' message in their view typically, but actually 'isCurrentUser' prop indicates who SENT it. 
-            // Wait, in MessagesPage: isCurrentUser={msg.senderId === currentUser.id}.
-            // If I am the recipient, isCurrentUser is false.
+        if (!isCurrentUser) { 
             respondToBoardInvite(message.id, 'accept');
         }
     };
@@ -99,6 +98,7 @@ const Message: React.FC<MessageProps> = ({ message, author, isCurrentUser }) => 
                      <div className={`flex items-center justify-between ${hasMedia ? 'px-2 py-1' : 'mb-1'}`}>
                          <div className="flex items-center gap-2">
                              <WalletIcon className="w-5 h-5" />
+                             {/* Fixed kopekiAmount access */}
                              <span className="font-bold text-lg">{message.kopekiAmount?.toLocaleString()} K</span>
                          </div>
                      </div>

@@ -6,9 +6,7 @@ import { AVAILABLE_AWARDS } from '../components/Awards';
 
 export const getServerUrl = () =>   true ? "https://www.theqult.com/api" : "https://localhost:7151";
 
-
 export const getFlagUrl = (cc: string) => cc ? `https://flagcdn.com/w40/${cc.toLowerCase()}.png` : '';
-
 
 // Centralized Avatar & Banner Logic
 export const getAvatarUrl = (user: User | null | undefined): string | undefined => {
@@ -119,7 +117,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (usersS.isLoaded && boardsS.isLoaded && postsS.isLoaded && curUserS.isLoaded) {
         if (users.length === 0) { 
             const d = DemoContent.getInitialData(); 
-            setUsers(d.users); setBoards(d.boards); setPosts(d.posts); setProfilePosts(d.profilePosts); setEditorials(d.editorials); setComments(d.comments); setMessages(d.messages); setVotes(d.votes); setSubscriptions(d.subscriptions); setUserSubscriptions(d.userSubscriptions); setFollows(d.follows); setTransactions(d.transactions); setAwards(d.awards); setAds(d.ads); 
+            setUsers(d.users); setBoards(d.boards); setPosts(d.posts as any); setProfilePosts(d.profilePosts as any); setEditorials(d.editorials); setComments(d.comments); setMessages(d.messages); setVotes(d.votes); setSubscriptions(d.subscriptions); setUserSubscriptions([]); setFollows(d.follows); setTransactions([]); setAwards([]); setAds(d.ads); 
         }
         setIsInit(false);
     }
@@ -196,7 +194,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const buyKopeki = (a: number) => {
       if(!currentUser) return {success:false, message:'Login'};
       api(`/wallet/buy`, 'POST', { amount: a });
-      const updatedUser = { ...currentUser, kopeki: currentUser.kopeki + a };
+      const updatedUser = { ...currentUser, kopeki: (currentUser.kopeki || 0) + a };
       const tx: Transaction = { 
           id: crypto.randomUUID(), userId: currentUser.id, type: 'buy', amount: a, 
           currencyAmount: parseFloat((a/10000).toFixed(2)), description: `Bought ${a.toLocaleString()}`, createdAt: new Date().toISOString() 
@@ -209,9 +207,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const sellKopeki = (a: number) => {
       if(!currentUser) return {success:false, message:'Login'};
-      if (currentUser.kopeki < a) return { success: false, message: 'Insufficient funds' };
+      if ((currentUser.kopeki || 0) < a) return { success: false, message: 'Insufficient funds' };
       api(`/wallet/sell`, 'POST', { amount: a });
-      const updatedUser = { ...currentUser, kopeki: currentUser.kopeki - a };
+      const updatedUser = { ...currentUser, kopeki: (currentUser.kopeki || 0) - a };
       const tx: Transaction = { 
           id: crypto.randomUUID(), userId: currentUser.id, type: 'sell', amount: a, 
           currencyAmount: parseFloat((a/10000).toFixed(2)), description: `Sold ${a.toLocaleString()}`, createdAt: new Date().toISOString() 
@@ -268,12 +266,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       const fee = creator.subscriptionFee || 0;
       if (fee > 0) {
-          if (currentUser.kopeki < fee) return { success: false, message: 'Insufficient funds' };
+          if ((currentUser.kopeki || 0) < fee) return { success: false, message: 'Insufficient funds' };
           
           // Deduct from current user
-          const updatedSub = { ...currentUser, kopeki: currentUser.kopeki - fee };
+          const updatedSub = { ...currentUser, kopeki: (currentUser.kopeki || 0) - fee };
           // Add to creator (find in users array, might not be current user)
-          const updatedCreator = { ...creator, kopeki: creator.kopeki + fee };
+          const updatedCreator = { ...creator, kopeki: (creator.kopeki || 0) + fee };
           
           setUsers(prev => prev.map(u => u.id === currentUser.id ? updatedSub : u.id === creator.id ? updatedCreator : u));
           setCurrentUser(updatedSub);
@@ -298,7 +296,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (boards.some(b => b.name.toLowerCase() === name.toLowerCase())) return { success: false, message: 'Board name taken' };
 
       const b: Board = { 
-          id: crypto.randomUUID(), name, description, allowAnonymousComments, allowAnonymousPosts, password, isInviteOnly, entryFee, iconUrl, bannerUrl,
+          id: crypto.randomUUID(), name, description, allowAnonymousComments, allowAnonymousPosts, password, isInviteOnly, entryFee: entryFee || 0, iconUrl, bannerUrl,
           creatorId: currentUser.id, createdAt: new Date().toISOString(), 
           moderatorIds: [], adminIds: [currentUser.id], 
           allowedUserIds: (isInviteOnly || (entryFee || 0) > 0) ? [currentUser.id] : []
@@ -485,10 +483,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if(!recipient) return {success:false, error: 'Recipient not found'};
 
       if (k && k > 0) {
-          if (currentUser.kopeki < k) return { success: false, error: 'Insufficient funds' };
+          if ((currentUser.kopeki || 0) < k) return { success: false, error: 'Insufficient funds' };
           
-          const updatedSender = { ...currentUser, kopeki: currentUser.kopeki - k };
-          const updatedRecipient = { ...recipient, kopeki: recipient.kopeki + k };
+          const updatedSender = { ...currentUser, kopeki: (currentUser.kopeki || 0) - k };
+          const updatedRecipient = { ...recipient, kopeki: (recipient.kopeki || 0) + k };
           
           setUsers(prev => prev.map(u => u.id === currentUser.id ? updatedSender : u.id === recipient.id ? updatedRecipient : u));
           setCurrentUser(updatedSender);
@@ -530,11 +528,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       api(`/boards/${bid}/pay`, 'POST');
       const board = boards.find(b => b.id === bid);
       if(!board || !board.entryFee) return {success:false, message:'Invalid'};
-      if(currentUser.kopeki < board.entryFee) return {success:false, message:'Insufficient funds'};
+      if((currentUser.kopeki || 0) < board.entryFee) return {success:false, message:'Insufficient funds'};
 
       const creator = users.find(u => u.id === board.creatorId);
-      const updatedUser = { ...currentUser, kopeki: currentUser.kopeki - board.entryFee };
-      let updatedCreator = creator ? { ...creator, kopeki: creator.kopeki + board.entryFee } : undefined;
+      const updatedUser = { ...currentUser, kopeki: (currentUser.kopeki || 0) - board.entryFee };
+      let updatedCreator = creator ? { ...creator, kopeki: (creator.kopeki || 0) + board.entryFee } : undefined;
 
       setUsers(prev => prev.map(u => u.id === currentUser.id ? updatedUser : (updatedCreator && u.id === creator!.id) ? updatedCreator : u));
       setCurrentUser(updatedUser);
@@ -553,13 +551,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       api('/awards', 'POST', { entityId: eid, entityType: et, awardId: aid, receiverId: rid });
       const awardDef = AVAILABLE_AWARDS.find(a => a.id === aid);
       if (!awardDef) return {success:false, message:'Invalid award'};
-      if (currentUser.kopeki < awardDef.cost) return {success:false, message:'Insufficient Kopeki'};
+      if ((currentUser.kopeki || 0) < awardDef.cost) return {success:false, message:'Insufficient Kopeki'};
 
       const receiver = users.find(u => u.id === rid);
       if (!receiver) return {success:false, message:'Receiver not found'};
 
-      const updatedSender = { ...currentUser, kopeki: currentUser.kopeki - awardDef.cost };
-      const updatedReceiver = { ...receiver, kopeki: receiver.kopeki + awardDef.cost };
+      const updatedSender = { ...currentUser, kopeki: (currentUser.kopeki || 0) - awardDef.cost };
+      const updatedReceiver = { ...receiver, kopeki: (receiver.kopeki || 0) + awardDef.cost };
 
       setUsers(prev => prev.map(u => u.id === currentUser.id ? updatedSender : u.id === receiver.id ? updatedReceiver : u));
       setCurrentUser(updatedSender);
@@ -580,21 +578,21 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       api(`/profile-posts/${pid}/unlock`, 'POST');
       const post = profilePosts.find(p => p.id === pid);
       if(!post || !post.price) return {success:false};
-      if(currentUser.kopeki < post.price) return {success:false, message:'Insufficient funds'};
+      if((currentUser.kopeki || 0) < post.price) return {success:false, message:'Insufficient funds'};
 
       const author = users.find(u => u.id === post.authorId);
       if(!author) return {success:false, message:'Author error'};
 
-      const updatedUser = { ...currentUser, kopeki: currentUser.kopeki - post.price };
-      const updatedAuthor = { ...author, kopeki: author.kopeki + post.price };
+      const updatedUser = { ...currentUser, kopeki: (currentUser.kopeki || 0) - post.price };
+      const updatedAuthor = { ...author, kopeki: (author.kopeki || 0) + post.price };
 
       setUsers(prev => prev.map(u => u.id === currentUser.id ? updatedUser : u.id === author.id ? updatedAuthor : u));
       setCurrentUser(updatedUser);
       setProfilePosts(prev => prev.map(p => p.id === pid ? { ...p, unlockedUserIds: [...(p.unlockedUserIds||[]), currentUser.id] } : p));
 
       setTransactions(prev => [
-          { id: crypto.randomUUID(), userId: currentUser.id, type: 'post_unlock', amount: post.price, description: `Unlocked post`, createdAt: new Date().toISOString() },
-          { id: crypto.randomUUID(), userId: author.id, type: 'post_income', amount: post.price, description: `Post unlocked by ${currentUser.username}`, createdAt: new Date().toISOString() },
+          { id: crypto.randomUUID(), userId: currentUser.id, type: 'post_unlock', amount: post.price!, description: `Unlocked post`, createdAt: new Date().toISOString() },
+          { id: crypto.randomUUID(), userId: author.id, type: 'post_income', amount: post.price!, description: `Post unlocked by ${currentUser.username}`, createdAt: new Date().toISOString() },
           ...prev
       ]);
       return { success: true, message: 'OK' };
@@ -602,9 +600,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const createAd = (bid: string, t: string, c: string, l: string, i: string, b: number, m: any, ba: number) => {
       if(!currentUser) return {success:false, message:'Login'};
-      if (currentUser.kopeki < b) return {success:false, message:'Insufficient funds'};
+      if ((currentUser.kopeki || 0) < b) return {success:false, message:'Insufficient funds'};
 
-      const updatedUser = { ...currentUser, kopeki: currentUser.kopeki - b };
+      const updatedUser = { ...currentUser, kopeki: (currentUser.kopeki || 0) - b };
       setUsers(prev => prev.map(u => u.id === currentUser.id ? updatedUser : u));
       setCurrentUser(updatedUser);
 
@@ -635,7 +633,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (refund > 0) {
           const user = users.find(u => u.id === ad.userId);
           if (user) {
-              const updatedUser = { ...user, kopeki: user.kopeki + refund };
+              const updatedUser = { ...user, kopeki: (user.kopeki || 0) + refund };
               setUsers(prev => prev.map(u => u.id === user.id ? updatedUser : u));
               if (currentUser.id === user.id) setCurrentUser(updatedUser);
               setTransactions(prev => [{ id: crypto.randomUUID(), userId: user.id, type: 'ad_refund' as const, amount: refund, description: `Refund ${ad.title}`, createdAt: new Date().toISOString() }, ...prev]);
@@ -646,11 +644,25 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const trackAdImpression = (id: string) => {
       api(`/ads/${id}/impression`, 'POST');
-      setAds(o => o.map(a => (a.id === id && a.status === 'active') ? {...a, views: a.views + 1, spent: a.spent + (a.model === 'CPM' ? a.bidAmount/1000 : 0), status: (a.spent + (a.model === 'CPM' ? a.bidAmount/1000 : 0)) >= a.budget ? 'completed' : 'active'} : a));
+      setAds(o => o.map(a => {
+        if (a.id === id && a.status === 'active') {
+            const cost = a.model === 'CPM' ? a.bidAmount/1000 : 0;
+            const newSpent = a.spent + cost;
+            return {...a, views: a.views + 1, spent: newSpent, status: newSpent >= a.budget ? 'completed' : 'active'};
+        }
+        return a;
+      }));
   };
   const trackAdClick = (id: string) => {
       api(`/ads/${id}/click`, 'POST');
-      setAds(o => o.map(a => (a.id === id && a.status === 'active') ? {...a, clicks: a.clicks + 1, spent: a.spent + (a.model === 'CPC' ? a.bidAmount : 0), status: (a.spent + (a.model === 'CPC' ? a.bidAmount : 0)) >= a.budget ? 'completed' : 'active'} : a));
+      setAds(o => o.map(a => {
+        if (a.id === id && a.status === 'active') {
+            const cost = a.model === 'CPC' ? a.bidAmount : 0;
+            const newSpent = a.spent + cost;
+            return {...a, clicks: a.clicks + 1, spent: newSpent, status: newSpent >= a.budget ? 'completed' : 'active'};
+        }
+        return a;
+      }));
   };
   const getActiveAdsForBoard = (bid: string) => ads.filter(a => a.boardId === bid && a.status === 'active');
 

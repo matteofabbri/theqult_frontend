@@ -1,3 +1,4 @@
+
 # Documentazione Endpoints API
 
 Questa sezione descrive le rotte API richiamate dal frontend. Tutti i dati sono inviati e ricevuti in formato `application/json`.
@@ -15,37 +16,14 @@ Registra un nuovo account.
 
 ---
 
-## Wallet & Economia
-### `POST /wallet/buy`
-Acquisto di Kopeki (Deposito).
-- **Payload**: `{ amount }` (numero di Kopeki)
-- **Risposta**: `200 OK`.
-
-### `POST /wallet/sell`
-Conversione Kopeki in valuta (Prelievo).
-- **Payload**: `{ amount }`
-- **Risposta**: `200 OK`.
-
-### `POST /profile-posts/:id/unlock`
-Sblocca un post a pagamento sul profilo di un utente.
-- **Payload**: nessuno (l'ID è nell'URL)
-- **Risposta**: `200 OK`.
-
----
-
 ## Board & Community
 ### `POST /boards`
 Crea una nuova board.
-- **Payload**: `{ name, description, allowAnonymousComments, allowAnonymousPosts, password?, isInviteOnly?, entryFee?, iconUrl?, bannerUrl? }`
+- **Payload**: `{ name, description, allowAnonymousComments, allowAnonymousPosts, password?, isInviteOnly?, iconUrl?, bannerUrl? }`
 - **Risposta**: `201 Created`.
 
-### `POST /boards/:id/pay`
-Paga la quota di ingresso per una board a pagamento.
-- **Payload**: nessuno.
-- **Risposta**: `200 OK`.
-
 ### `POST /boards/:id/moderators`
-Nomina un moderatore.
+Nomina un moderatore per la board.
 - **Payload**: `{ userId }`
 - **Risposta**: `200 OK`.
 
@@ -72,7 +50,7 @@ Invia un commento o una risposta.
 ## Messaggistica & Social
 ### `POST /messages`
 Invia un messaggio privato o un invito.
-- **Payload**: `{ id, senderId, recipientId, content, media, kopekiAmount, isEncrypted, type, metadata? }`
+- **Payload**: `{ id, senderId, recipientId, content, media, isEncrypted, type, metadata? }`
 - **Risposta**: `201 Created`.
 
 ### `POST /messages/:msgId/invite`
@@ -80,25 +58,20 @@ Risponde a un invito a una board.
 - **Payload**: `{ action }` (action: 'accept' | 'reject')
 - **Risposta**: `200 OK`.
 
-### `POST /awards`
-Invia un premio sociale.
-- **Payload**: `{ entityId, entityType, awardId, receiverId }`
-- **Risposta**: `200 OK`.
-
 ---
 
 ## Pubblicità (Advertising)
 ### `POST /ads`
-Crea una campagna pubblicitaria.
-- **Payload**: `{ id, userId, boardId, title, content, linkUrl, imageUrl, budget, model, bidAmount }`
+Invia una richiesta di sponsorizzazione per una board.
+- **Payload**: `{ id, userId, boardId, title, content, linkUrl, imageUrl }`
 - **Risposta**: `201 Created`.
 
 ### `POST /ads/:id/impression`
-Traccia la visualizzazione di un annuncio (per modelli CPM).
+Traccia la visualizzazione di un annuncio.
 - **Payload**: nessuno.
 - **Risposta**: `204 No Content`.
 
 ### `POST /ads/:id/click`
-Traccia il click su un annuncio (per modelli CPC).
+Traccia il click su un annuncio.
 - **Payload**: nessuno.
 - **Risposta**: `204 No Content`.

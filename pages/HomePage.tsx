@@ -6,7 +6,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import SearchBar from '../components/SearchBar';
 import TrendingCarousel from '../components/TrendingCarousel';
 import AuthModal from '../components/AuthModal';
-import { CheckIcon, LockIcon, PendingIcon } from '../components/Icons';
 
 const HomePage: React.FC = () => {
   const { posts, boards, subscriptions, editorials } = useData();
@@ -73,35 +72,6 @@ const HomePage: React.FC = () => {
           
           {currentUser ? (
             <>
-               {/* Verification Widget for Unverified Users */}
-               {!currentUser.isVerified && (
-                  <div className={`bg-white border rounded-md p-4 shadow-sm relative overflow-hidden ${currentUser.isPendingVerification ? 'border-yellow-200 bg-yellow-50' : 'border-orange-200'}`}>
-                      <div className="absolute top-0 right-0 p-2 opacity-10">
-                          {currentUser.isPendingVerification ? <PendingIcon className="w-16 h-16 text-yellow-600"/> : <LockIcon className="w-16 h-16 text-orange-500" />}
-                      </div>
-                      <h3 className="text-lg font-bold text-gray-900 mb-2">
-                          {currentUser.isPendingVerification ? 'Verification in Progress' : 'Verify Your Account'}
-                      </h3>
-                      <p className="text-sm text-gray-600 mb-4">
-                          {currentUser.isPendingVerification 
-                            ? 'Your documents are being reviewed. We will notify you once your Kopeki wallet is unlocked.'
-                            : 'Complete your identity verification to unlock your Kopeki wallet and enable full features.'}
-                      </p>
-                      {currentUser.isPendingVerification ? (
-                          <div className="w-full text-center bg-yellow-200 text-yellow-800 font-bold py-2 px-4 rounded-full text-sm shadow-sm cursor-default">
-                              Reviewing...
-                          </div>
-                      ) : (
-                          <Link 
-                            to="/verify" 
-                            className="block w-full text-center bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-full transition-colors text-sm shadow-md"
-                          >
-                              Verify Now
-                          </Link>
-                      )}
-                  </div>
-               )}
-
               {/* Subscribed Boards Section */}
               <div className="bg-white border border-gray-200 rounded-md p-4">
                 <h3 className="text-lg font-bold text-gray-900 mb-4 border-b border-gray-200 pb-2">My Subscriptions</h3>

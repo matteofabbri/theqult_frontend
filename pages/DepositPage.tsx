@@ -6,6 +6,7 @@ import { MastercardIcon, CheckIcon, WalletIcon } from '../components/Icons';
 import PaymentMethodsModal from '../components/PaymentMethodsModal';
 
 const DepositPage: React.FC = () => {
+  // Fixed missing buyKopeki from useAuth
   const { currentUser, buyKopeki } = useAuth();
   const navigate = useNavigate();
   
@@ -20,11 +21,13 @@ const DepositPage: React.FC = () => {
           navigate('/');
           return;
       }
+      // Fixed savedCards access
       if (currentUser.savedCards && currentUser.savedCards.length > 0) {
           setSelectedCardId(currentUser.savedCards[0].id);
       }
   }, [currentUser, navigate]);
 
+  // Fixed savedCards access
   const selectedCard = currentUser?.savedCards?.find(c => c.id === selectedCardId);
 
   const handleAmountPreset = (amount: number) => {
@@ -39,8 +42,8 @@ const DepositPage: React.FC = () => {
     }
     
     const kopeki = parseInt(amountKopeki, 10);
-    if (isNaN(kopeki) || kopeki < 100000) {
-        setMessage({ type: 'error', text: 'Minimum deposit is 100,000 Kopeki (€10.00).' });
+    if (isNaN(kopeki) || kopeki <= 0) {
+        setMessage({ type: 'error', text: 'Please enter a valid positive integer.' });
         return;
     }
 
@@ -55,12 +58,11 @@ const DepositPage: React.FC = () => {
         if (result.success) {
             setMessage({ type: 'success', text: `Successfully deposited ${kopeki.toLocaleString()} Kopeki (€${eurCost.toFixed(2)})` });
             setAmountKopeki('');
-            // Optional: navigate away after success
             setTimeout(() => navigate('/settings'), 2000);
         } else {
             setMessage({ type: 'error', text: result.message });
         }
-    }, 1500); // Simulate network delay
+    }, 1000); // Simulate network delay
   };
 
   if (!currentUser) return null;
@@ -88,7 +90,6 @@ const DepositPage: React.FC = () => {
                     {selectedCard ? (
                         <div className="relative w-full aspect-[1.586] bg-gray-900 rounded-xl p-5 text-white shadow-lg mb-6">
                              <div className="absolute top-4 right-4 opacity-50">
-                                 {/* Simulating chip/contactless */}
                                 <div className="w-8 h-5 border border-gray-500 rounded flex items-center justify-center">
                                     <div className="w-6 h-3 border border-gray-500 rounded-sm"></div>
                                 </div>
@@ -106,7 +107,6 @@ const DepositPage: React.FC = () => {
                                  </div>
                              </div>
                              
-                             {/* Checkmark badge */}
                              <div className="absolute -top-2 -right-2 bg-white rounded-full p-1 shadow-sm border border-gray-200">
                                  <div className="bg-gray-200 rounded-full p-0.5">
                                     <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center">
@@ -122,13 +122,13 @@ const DepositPage: React.FC = () => {
                          </div>
                     )}
 
-                    {/* Method Selector */}
                     <div className="w-full bg-white border border-gray-200 rounded-lg overflow-hidden">
                         <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex justify-between items-center cursor-pointer">
                             <span className="font-semibold text-gray-700 text-sm">I miei metodi di pagamento</span>
                             <span className="text-gray-400">^</span>
                         </div>
                         <div className="max-h-40 overflow-y-auto">
+                             {/* Fixed savedCards access */}
                              {currentUser.savedCards && currentUser.savedCards.length > 0 ? (
                                  currentUser.savedCards.map(card => (
                                      <button 
@@ -159,10 +159,7 @@ const DepositPage: React.FC = () => {
             </div>
         </div>
 
-        {/* Right Column - Payment Details */}
         <div className="w-full md:w-2/3">
-             
-             {/* Exchange Rate Box */}
              <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-5 mb-6 flex flex-col sm:flex-row items-center justify-between shadow-sm">
                  <div className="flex items-center gap-3 mb-2 sm:mb-0">
                      <div className="bg-indigo-100 text-indigo-600 p-2 rounded-full">
@@ -196,18 +193,17 @@ const DepositPage: React.FC = () => {
                                     value={amountKopeki} 
                                     onChange={(e) => setAmountKopeki(e.target.value)}
                                     className="w-full border-2 border-green-500 rounded-md p-4 text-2xl font-bold text-gray-900 focus:outline-none focus:ring-0"
-                                    placeholder="0"
-                                    min="100000"
-                                    step="1000"
+                                    placeholder="Inserisci importo"
+                                    min="1"
+                                    step="1"
                                  />
-                                 {amountKopeki && parseInt(amountKopeki) >= 100000 && (
+                                 {amountKopeki && parseInt(amountKopeki) > 0 && (
                                      <div className="absolute right-4 top-1/2 -translate-y-1/2 bg-green-500 rounded-full p-1">
                                          <CheckIcon className="w-5 h-5 text-white" />
                                      </div>
                                  )}
                              </div>
                              <p className="text-xs text-gray-500 mt-2">
-                                 Min: 100.000 Kopeki (10,00 €) <br/>
                                  <span className="text-primary font-semibold text-lg">
                                      Costo: €{amountKopeki ? (parseInt(amountKopeki, 10) / 10000).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0,00'}
                                  </span>
@@ -215,7 +211,7 @@ const DepositPage: React.FC = () => {
                         </div>
 
                         <div className="grid grid-cols-4 gap-2 md:gap-4">
-                            {[200000, 500000, 1000000, 2500000].map(val => (
+                            {[1000, 10000, 100000, 1000000].map(val => (
                                 <button 
                                     key={val}
                                     type="button"

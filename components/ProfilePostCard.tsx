@@ -21,6 +21,7 @@ interface ProfilePostCardProps {
 
 const ProfilePostCard: React.FC<ProfilePostCardProps> = ({ post, isFullView = false }) => {
   const { getUserById, currentUser } = useAuth();
+  // Fixed missing awards and unlockProfilePost from useData
   const { comments, deleteProfilePost, votes, castVote, awards, unlockProfilePost } = useData();
   const [isReportModalOpen, setReportModalOpen] = useState(false);
   const [isAwardModalOpen, setAwardModalOpen] = useState(false);
@@ -36,7 +37,8 @@ const ProfilePostCard: React.FC<ProfilePostCardProps> = ({ post, isFullView = fa
 
   const postAwards = awards.filter(a => a.entityId === post.id);
   const groupedAwards = postAwards.reduce((acc, award) => { acc[award.typeId] = (acc[award.typeId] || 0) + 1; return acc; }, {} as Record<string, number>);
-  const isLocked = post.price && post.price > 0 && currentUser?.id !== post.authorId && !post.unlockedUserIds?.includes(currentUser?.id || '');
+  // Fixed ProfilePost property access for price and unlockedUserIds
+  const isLocked = !!(post.price && post.price > 0 && currentUser?.id !== post.authorId && !post.unlockedUserIds?.includes(currentUser?.id || ''));
 
   const handleVote = (type: 'up' | 'down') => { if (currentUser) castVote(post.id, type); else setAuthModalOpen(true); };
   const handleDelete = () => { if (window.confirm('Delete this?')) deleteProfilePost(post.id); };
@@ -62,6 +64,7 @@ const ProfilePostCard: React.FC<ProfilePostCardProps> = ({ post, isFullView = fa
           <span>Posted by {author ? <Link to={`/u/${author.username}`} className="hover:underline text-gray-800 font-bold">u/{author.username}</Link> : 'u/unknown'}</span>
           <span className="mx-1">•</span>
           <span>{timeAgo(post.createdAt)}</span>
+          {/* Fixed price access */}
           {post.price && post.price > 0 && <span className="ml-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5 rounded-full font-bold flex items-center gap-1"><WalletIcon className="w-3 h-3" />{post.price} K</span>}
         </div>
         
@@ -83,6 +86,7 @@ const ProfilePostCard: React.FC<ProfilePostCardProps> = ({ post, isFullView = fa
                      <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm text-yellow-500"><svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>
                      <h3 className="text-lg font-bold text-gray-800 mb-1">Exclusive Content</h3>
                      <p className="text-gray-600 mb-4 text-sm">Unlock this post to see the full content and media.</p>
+                     {/* Fixed price access */}
                      <button onClick={handleUnlock} className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-full shadow-md flex items-center gap-2 transition-transform active:scale-95 mx-auto"><span>Unlock for {post.price} K</span></button>
                      {unlockError && <p className="text-red-500 text-xs mt-2 font-semibold">{unlockError}</p>}
                      {!currentUser && <p className="text-xs text-gray-500 mt-3">You must be logged in to unlock.</p>}

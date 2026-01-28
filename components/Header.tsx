@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useStore';
 import AuthModal from './AuthModal';
 import CreateBoardModal from './CreateBoardModal';
-import { SettingsIcon, NewspaperIcon, MessageIcon, WalletIcon, PlusIcon } from './Icons';
+import { SettingsIcon, NewspaperIcon, MessageIcon, PlusIcon } from './Icons';
 import UserAvatar from './UserAvatar';
 
 const Header: React.FC = () => {
@@ -44,26 +44,14 @@ const Header: React.FC = () => {
             </button>
 
             {currentUser && (
-                <>
-                    <Link
-                        to="/messages"
-                        className="flex items-center gap-2 text-gray-600 hover:text-primary transition-colors p-2 rounded-md hover:bg-gray-100"
-                        aria-label="Messages"
-                        title="Messages"
-                    >
-                        <MessageIcon className="w-6 h-6" />
-                    </Link>
-                    {currentUser.isVerified && (
-                      <Link
-                          to="/wallet/deposit"
-                          className="hidden md:flex items-center gap-1.5 text-gray-700 hover:text-primary transition-colors bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-full"
-                          title="Wallet & Deposit"
-                      >
-                          <WalletIcon className="w-5 h-5 text-green-600" />
-                          <span className="font-bold text-sm">{currentUser.kopeki.toLocaleString()} K</span>
-                      </Link>
-                    )}
-                </>
+                <Link
+                    to="/messages"
+                    className="flex items-center gap-2 text-gray-600 hover:text-primary transition-colors p-2 rounded-md hover:bg-gray-100"
+                    aria-label="Messages"
+                    title="Messages"
+                >
+                    <MessageIcon className="w-6 h-6" />
+                </Link>
             )}
             {currentUser ? (
               <div className="flex items-center gap-2">

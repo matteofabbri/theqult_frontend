@@ -6,6 +6,7 @@ import { BankIcon, CheckIcon, WalletIcon } from '../components/Icons';
 import PayoutMethodsModal from '../components/PayoutMethodsModal';
 
 const WithdrawPage: React.FC = () => {
+  // Fixed missing sellKopeki from useAuth
   const { currentUser, sellKopeki } = useAuth();
   const navigate = useNavigate();
   
@@ -20,16 +21,19 @@ const WithdrawPage: React.FC = () => {
           navigate('/');
           return;
       }
+      // Fixed savedIbans access
       if (currentUser.savedIbans && currentUser.savedIbans.length > 0) {
           setSelectedIbanId(currentUser.savedIbans[0].id);
       }
   }, [currentUser, navigate]);
 
+  // Fixed savedIbans access
   const selectedIban = currentUser?.savedIbans?.find(i => i.id === selectedIbanId);
 
   const handleAmountPreset = (percentage: number) => {
       if (currentUser) {
-        const amount = Math.floor(currentUser.kopeki * percentage);
+        // Fixed kopeki access
+        const amount = Math.floor((currentUser.kopeki || 0) * percentage);
         setAmountKopeki(amount.toString());
       }
   };
@@ -47,7 +51,8 @@ const WithdrawPage: React.FC = () => {
         return;
     }
 
-    if (currentUser && kopeki > currentUser.kopeki) {
+    // Fixed kopeki access
+    if (currentUser && kopeki > (currentUser.kopeki || 0)) {
          setMessage({ type: 'error', text: 'Insufficient balance.' });
          return;
     }
@@ -130,6 +135,7 @@ const WithdrawPage: React.FC = () => {
                             <span className="text-gray-400">^</span>
                         </div>
                         <div className="max-h-40 overflow-y-auto">
+                             {/* Fixed savedIbans access */}
                              {currentUser.savedIbans && currentUser.savedIbans.length > 0 ? (
                                  currentUser.savedIbans.map(iban => (
                                      <button 
@@ -189,7 +195,8 @@ const WithdrawPage: React.FC = () => {
                 <div className="p-6 md:p-8">
                     <div className="flex justify-between items-center mb-4">
                         <span className="text-sm font-semibold text-gray-600">Disponibile per il prelievo</span>
-                        <span className="font-bold text-gray-900">{currentUser.kopeki.toLocaleString()} Kopeki</span>
+                        {/* Fixed kopeki access */}
+                        <span className="font-bold text-gray-900">{(currentUser.kopeki || 0).toLocaleString()} Kopeki</span>
                     </div>
 
                     <form onSubmit={handleWithdraw} className="space-y-6">
@@ -210,7 +217,8 @@ const WithdrawPage: React.FC = () => {
                                     placeholder="0"
                                     min="1"
                                  />
-                                  {amountKopeki && parseInt(amountKopeki) > 0 && parseInt(amountKopeki) <= currentUser.kopeki && (
+                                  {/* Fixed kopeki access */}
+                                  {amountKopeki && parseInt(amountKopeki) > 0 && parseInt(amountKopeki) <= (currentUser.kopeki || 0) && (
                                      <div className="absolute right-4 top-1/2 -translate-y-1/2 bg-green-500 rounded-full p-1">
                                          <CheckIcon className="w-5 h-5 text-white" />
                                      </div>

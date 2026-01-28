@@ -5,18 +5,18 @@ import { useAuth, useData, getBannerUrl } from '../hooks/useStore';
 import NotFoundPage from './NotFoundPage';
 import ProfilePostCard from '../components/ProfilePostCard';
 import UserAvatar from '../components/UserAvatar';
-import { HeartIcon, TrendingUpIcon, UsersIcon, MessageIcon, NewspaperIcon, VerifiedIcon, CloseIcon, PendingIcon } from '../components/Icons';
+import { HeartIcon, TrendingUpIcon, UsersIcon, MessageIcon, NewspaperIcon } from '../components/Icons';
 import AuthModal from '../components/AuthModal';
 import { AVAILABLE_AWARDS } from '../components/Awards';
 
 const UserProfilePage: React.FC = () => {
   const { username } = useParams<{ username: string }>();
   const { currentUser, getUserByUsername } = useAuth();
+  // Fixed missing awards from useData
   const { posts, profilePosts, comments, votes, follows, followUser, unfollowUser, isFollowing, awards } = useData();
   const navigate = useNavigate();
   
   const [authModalState, setAuthModalState] = useState<{ isOpen: boolean; view: 'login' | 'signup' }>({ isOpen: false, view: 'login' });
-  const [showFullKey, setShowFullKey] = useState(false);
   
   const user = username ? getUserByUsername(username) : undefined;
 
@@ -117,22 +117,7 @@ const UserProfilePage: React.FC = () => {
                     <div className="flex flex-col sm:flex-row items-end sm:items-end -mt-12 sm:-mt-16 mb-4 gap-4 px-4">
                         <UserAvatar user={user} className="w-24 h-24 md:w-32 md:h-32 border-4 border-white bg-white rounded-full shadow-sm flex-shrink-0" />
                         <div className="mb-1 flex-1">
-                            <div className="flex items-center gap-2">
-                                {user.isVerified ? (
-                                    <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white shadow-sm" title="Verified Account">
-                                        <VerifiedIcon className="w-4 h-4" />
-                                    </div>
-                                ) : user.isPendingVerification ? (
-                                    <div className="w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center text-white shadow-sm border border-yellow-500" title="Verification Pending">
-                                        <PendingIcon className="w-4 h-4" />
-                                    </div>
-                                ) : (
-                                    <div className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 shadow-sm border border-gray-300" title="Unverified Account">
-                                        <CloseIcon className="w-3 h-3" />
-                                    </div>
-                                )}
-                                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 break-words">{user.username}</h1>
-                            </div>
+                            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 break-words">{user.username}</h1>
                             <div className="text-sm text-gray-500">u/{user.username} • Joined {formatDate(user.createdAt)}</div>
                         </div>
                         <div className="mb-2">

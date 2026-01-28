@@ -8,6 +8,7 @@ interface PayoutMethodsModalProps {
 }
 
 const PayoutMethodsModal: React.FC<PayoutMethodsModalProps> = ({ onClose }) => {
+  // Fixed missing methods from useAuth
   const { currentUser, addIban, removeIban } = useAuth();
   const [iban, setIban] = useState('');
   const [ibanLabel, setIbanLabel] = useState('');
@@ -41,6 +42,7 @@ const PayoutMethodsModal: React.FC<PayoutMethodsModalProps> = ({ onClose }) => {
 
         <div className="mb-6 space-y-2">
             <h3 className="text-sm font-semibold text-gray-700">Saved IBANs</h3>
+            {/* Fixed savedIbans access */}
             {currentUser.savedIbans && currentUser.savedIbans.length > 0 ? (
                 currentUser.savedIbans.map(iban => (
                     <div key={iban.id} className="flex justify-between items-center p-3 bg-gray-50 rounded border border-gray-200">

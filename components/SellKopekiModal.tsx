@@ -9,12 +9,14 @@ interface SellKopekiModalProps {
 }
 
 const SellKopekiModal: React.FC<SellKopekiModalProps> = ({ onClose }) => {
+  // Fixed missing sellKopeki from useAuth
   const { currentUser, sellKopeki } = useAuth();
   const [amount, setAmount] = useState('');
   const [selectedIbanId, setSelectedIbanId] = useState('');
   const [message, setMessage] = useState({ type: '', text: '' });
 
   useEffect(() => {
+      // Fixed savedIbans access
       if (currentUser && currentUser.savedIbans && currentUser.savedIbans.length > 0) {
           setSelectedIbanId(currentUser.savedIbans[0].id);
       }
@@ -71,10 +73,12 @@ const SellKopekiModal: React.FC<SellKopekiModalProps> = ({ onClose }) => {
                     className="w-full bg-gray-50 border border-gray-300 rounded-md p-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                     <option value="">Select an IBAN</option>
+                    {/* Fixed savedIbans access */}
                     {currentUser.savedIbans?.map(iban => (
                         <option key={iban.id} value={iban.id}>{iban.label} ({iban.iban.slice(0, 6)}...)</option>
                     ))}
                 </select>
+                {/* Fixed savedIbans access */}
                 {(!currentUser.savedIbans || currentUser.savedIbans.length === 0) && (
                      <p className="text-xs text-red-500 mt-1">
                         No IBANs found. <Link to="/settings" onClick={onClose} className="underline">Add one in settings</Link>.
