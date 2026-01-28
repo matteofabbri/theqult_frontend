@@ -7,7 +7,7 @@ import Comment from '../components/Comment';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
-import { ThumbsDownIcon, HeartIcon, CheckIcon, SettingsIcon, CloseIcon, ReportIcon, CreatePostIcon, GiftIcon } from '../components/Icons';
+import { ThumbsDownIcon, HeartIcon, CheckIcon, SettingsIcon, ReportIcon, CreatePostIcon } from '../components/Icons';
 import UserAvatar from '../components/UserAvatar';
 import MarkdownEditor from '../components/MarkdownEditor';
 import BoardIcon from '../components/BoardIcon';
@@ -16,15 +16,12 @@ import CreateBoardModal from '../components/CreateBoardModal';
 import ReportModal from '../components/ReportModal';
 import PostMedia from '../components/PostMedia';
 import CreatePostModal from '../components/CreatePostModal';
-import AwardModal from '../components/AwardModal';
-import { AVAILABLE_AWARDS } from '../components/Awards';
 import MediaUploader from '../components/MediaUploader';
 import type { MediaItem } from '../types';
 
 const PostPage: React.FC = () => {
   const { postId } = useParams<{ postId: string }>();
-  // Fixed missing awards from useData
-  const { posts, comments, addComment, deletePost, isModerator, isBoardAdmin, votes, castVote, boards, isSubscribed, subscribe, unsubscribe, awards } = useData();
+  const { posts, comments, addComment, deletePost, isModerator, isBoardAdmin, votes, castVote, boards, isSubscribed, subscribe, unsubscribe } = useData();
   const { getUserById, currentUser, isAdmin } = useAuth();
   const navigate = useNavigate();
   
@@ -34,7 +31,6 @@ const PostPage: React.FC = () => {
   const [isCreateBoardModalOpen, setCreateBoardModalOpen] = useState(false);
   const [isReportModalOpen, setReportModalOpen] = useState(false);
   const [isCreatePostModalOpen, setCreatePostModalOpen] = useState(false);
-  const [isAwardModalOpen, setAwardModalOpen] = useState(false);
 
   const post = posts.find(p => p.id === postId);
   const board = post ? boards.find(b => b.id === post.boardId) : undefined;
@@ -80,13 +76,6 @@ const PostPage: React.FC = () => {
 
   const isCurrentUserSubscribed = isSubscribed(board.id);
 
-  // Awards Logic
-  const postAwards = awards.filter(a => a.entityId === post.id);
-  const groupedAwards = postAwards.reduce((acc, award) => {
-      acc[award.typeId] = (acc[award.typeId] || 0) + 1;
-      return acc;
-  }, {} as Record<string, number>);
-
   const handleSubscription = () => {
     if (!currentUser) {
       setAuthModalOpen(true);
@@ -105,14 +94,6 @@ const PostPage: React.FC = () => {
     } else {
       setAuthModalOpen(true);
     }
-  };
-
-  const handleGiveAward = () => {
-      if (currentUser) {
-          setAwardModalOpen(true);
-      } else {
-          setAuthModalOpen(true);
-      }
   };
 
   const handleDeletePost = () => {
@@ -140,7 +121,6 @@ const PostPage: React.FC = () => {
   };
 
   const handleCreatePost = () => {
-    // Check allowAnonymousPosts directly.
     if (currentUser || (board && board.allowAnonymousPosts)) {
       setCreatePostModalOpen(true);
     } else {
@@ -227,24 +207,6 @@ const PostPage: React.FC = () => {
                     <span className="mx-1">•</span>
                     <span>{timeAgo(post.createdAt)}</span>
                   </div>
-                  
-                  {/* Awards Display */}
-                  {Object.keys(groupedAwards).length > 0 && (
-                      <div className="flex flex-wrap gap-1 mb-3">
-                          {Object.entries(groupedAwards).map(([awardId, count]) => {
-                              const awardDef = AVAILABLE_AWARDS.find(a => a.id === awardId);
-                              if (!awardDef) return null;
-                              return (
-                                  <div key={awardId} className="flex items-center bg-gray-100 rounded-full px-2 py-0.5 border border-gray-200" title={awardDef.label}>
-                                      <div className={`w-4 h-4 mr-1 ${awardDef.color}`}>
-                                          <awardDef.icon />
-                                      </div>
-                                      {(count as number) > 1 && <span className="text-xs font-bold text-gray-600">{count as number}</span>}
-                                  </div>
-                              );
-                          })}
-                      </div>
-                  )}
 
                   <h1 className="text-2xl font-bold text-gray-900 mb-4 pr-10">{post.title}</h1>
                   <div className="prose max-w-none prose-img:rounded-lg prose-video:rounded-lg prose-a:text-primary hover:prose-a:text-orange-400">
@@ -267,18 +229,6 @@ const PostPage: React.FC = () => {
                           <span className={`text-sm font-semibold ${userVote?.type === 'up' ? 'text-red-600' : 'text-gray-700'}`}>{score}</span>
                       </div>
                       
-                        {/* Gift Button */}
-                        {author && (!currentUser || currentUser.id !== author.id) && (
-                            <button 
-                                onClick={handleGiveAward}
-                                className="flex items-center gap-2 text-gray-500 hover:bg-gray-100 hover:text-yellow-600 px-3 py-1 rounded-md text-xs font-semibold w-fit transition-colors"
-                                title="Give Award"
-                            >
-                                <GiftIcon className="w-5 h-5" />
-                                <span className="hidden sm:inline">Award</span>
-                            </button>
-                        )}
-
                         {isAuthor && (
                               <Link to={`/b/${board?.name}/post/${post.id}/edit`} className="text-xs font-semibold text-blue-500 hover:bg-blue-50 px-3 py-1 rounded-md">
                                 Edit Post
@@ -327,7 +277,6 @@ const PostPage: React.FC = () => {
               </div>
             </div>
             <aside className="space-y-4">
-              {/* Home Widget with Create Buttons */}
               <div className="bg-white border border-gray-200 rounded-md overflow-hidden shadow-sm">
                   <div className="p-4">
                      <div className="space-y-2">
@@ -347,7 +296,6 @@ const PostPage: React.FC = () => {
                     <div>
                         <h4 className="font-semibold text-sm text-gray-700 mb-2">Permissions</h4>
                         <div className="space-y-3">
-                            {/* Anonymous Posts */}
                             {board.allowAnonymousPosts ? (
                                 <div className="flex items-center justify-between p-2.5 bg-green-100 border border-green-300 rounded-md shadow-sm">
                                     <span className="text-sm font-bold text-green-900">Anonymous Posts</span>
@@ -364,7 +312,6 @@ const PostPage: React.FC = () => {
                                 </div>
                             )}
 
-                            {/* Anonymous Comments */}
                             {board.allowAnonymousComments ? (
                                 <div className="flex items-center justify-between p-2.5 bg-green-100 border border-green-300 rounded-md shadow-sm">
                                     <span className="text-sm font-bold text-green-900">Anonymous Comments</span>
@@ -406,14 +353,6 @@ const PostPage: React.FC = () => {
               entityId={post.id} 
               entityType="post" 
               onClose={() => setReportModalOpen(false)} 
-          />
-      )}
-      {isAwardModalOpen && post.authorId && (
-          <AwardModal 
-            entityId={post.id} 
-            entityType="post" 
-            receiverId={post.authorId}
-            onClose={() => setAwardModalOpen(false)} 
           />
       )}
       {isCreatePostModalOpen && <CreatePostModal boardId={board.id} onClose={() => setCreatePostModalOpen(false)} />}

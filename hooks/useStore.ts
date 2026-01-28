@@ -1,8 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
-import type { User, Board, Post, Comment, Vote, VoteType, Subscription, Editorial, ProfilePost, Follow, Message, MediaItem, Advertisement, Transaction, Award, CreditCard, Iban, UserSubscription } from '../types';
+import type { User, Board, Post, Comment, Vote, VoteType, Subscription, Editorial, ProfilePost, Follow, Message, MediaItem, Advertisement, Transaction, CreditCard, Iban, UserSubscription } from '../types';
 import { DemoContent } from '../utils/DemoContent';
-import { AVAILABLE_AWARDS } from '../components/Awards';
 
 export const getServerUrl = () => "http://localhost:3000";
 export const getFlagUrl = (cc: string) => cc ? `https://flagcdn.com/w40/${cc.toLowerCase()}.png` : '';
@@ -60,14 +59,13 @@ interface AuthContextType {
   getUserById: (id: string) => User | undefined; getUserByUsername: (u: string) => User | undefined; isAdmin: (id: string) => boolean;
   changePassword: (o: string, n: string) => { success: boolean, message: string }; updateProfile: (d: any) => { success: boolean; message: string; };
   moveConversationToJunk: (id: string) => void; moveConversationToInbox: (id: string) => void;
-  // Added missing methods for AuthContextType
   buyKopeki: (a: number) => { success: boolean; message: string; }; sellKopeki: (a: number) => { success: boolean; message: string; };
   addCreditCard: (c: any) => any; removeCreditCard: (id: string) => any; addIban: (i: any) => any; removeIban: (id: string) => any;
   getUserTransactions: (id: string) => Transaction[];
 }
 
 interface DataContextType {
-  boards: Board[]; posts: Post[]; profilePosts: ProfilePost[]; editorials: Editorial[]; comments: Comment[]; messages: Message[]; votes: Vote[]; subscriptions: Subscription[]; follows: Follow[]; ads: Advertisement[]; awards: Award[];
+  boards: Board[]; posts: Post[]; profilePosts: ProfilePost[]; editorials: Editorial[]; comments: Comment[]; messages: Message[]; votes: Vote[]; subscriptions: Subscription[]; follows: Follow[]; ads: Advertisement[];
   createBoard: (n: string, d: string, ac: boolean, ap: boolean, pw?: string, inv?: boolean, iconUrl?: string, bannerUrl?: string, entryFee?: number) => any;
   createPost: (t: string, c: string, b: string, m?: MediaItem[]) => Post | null; createProfilePost: (t: string, c: string, m?: MediaItem[], p?: number) => ProfilePost | null; createEditorial: (t: string, c: string, m?: MediaItem[]) => Editorial | null;
   updatePost: (id: string, t: string, c: string) => boolean; updateProfilePost: (id: string, t: string, c: string) => boolean; updateEditorial: (id: string, t: string, c: string) => boolean; updateBoard: (id: string, d: any) => any;
@@ -77,10 +75,9 @@ interface DataContextType {
   inviteUserToBoard: (bid: string, u: string) => any; removeUserFromBoard: (bid: string, uid: string) => any; subscribe: (bid: string) => void; unsubscribe: (bid: string) => void; isSubscribed: (bid: string) => boolean;
   followUser: (id: string) => void; unfollowUser: (id: string) => void; isFollowing: (id: string) => boolean; sendMessage: (rid: string, c: string, m?: MediaItem[], k?: number) => any; markConversationAsRead: (uid: string) => void;
   unlockBoard: (bid: string, pw: string) => boolean; isBoardUnlocked: (bid: string) => boolean;
-  // Added missing methods for DataContextType
   createAd: (bid: string, t: string, c: string, l: string, i: string, b: number, m: any, ba: number) => any; approveAd: (id: string) => void; rejectAd: (id: string) => void; trackAdImpression: (id: string) => void; trackAdClick: (id: string) => void; getActiveAdsForBoard: (bid: string) => Advertisement[];
   respondToBoardInvite: (msgId: string, action: 'accept' | 'reject') => void;
-  giveAward: (eid: string, et: any, aid: string, rid: string) => any; unlockProfilePost: (pid: string) => any;
+  unlockProfilePost: (pid: string) => any;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -91,14 +88,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const editsS = usePersistentState<Editorial[]>('r-editorials', []), commsS = usePersistentState<Comment[]>('r-comments', []), msgsS = usePersistentState<Message[]>('r-messages', []), votesS = usePersistentState<Vote[]>('r-votes', []);
   const subsS = usePersistentState<Subscription[]>('r-subscriptions', []), followsS = usePersistentState<Follow[]>('r-follows', []);
   const adsS = usePersistentState<Advertisement[]>('r-ads', []), curUserS = usePersistentState<User | null>('r-currentUser', null);
-  // Added missing state
-  const txS = usePersistentState<Transaction[]>('r-transactions', []), awardS = usePersistentState<Award[]>('r-awards', []);
+  const txS = usePersistentState<Transaction[]>('r-transactions', []);
   
   const [users, setUsers] = [usersS.value, usersS.setValue], [boards, setBoards] = [boardsS.value, boardsS.setValue], [posts, setPosts] = [postsS.value, postsS.setValue];
   const [profilePosts, setProfilePosts] = [pPostsS.value, pPostsS.setValue], [editorials, setEditorials] = [editsS.value, editsS.setValue], [comments, setComments] = [commsS.value, commsS.setValue];
   const [messages, setMessages] = [msgsS.value, msgsS.setValue], [votes, setVotes] = [votesS.value, votesS.setValue], [subscriptions, setSubscriptions] = [subsS.value, subsS.setValue];
   const [follows, setFollows] = [followsS.value, followsS.setValue], [ads, setAds] = [adsS.value, adsS.setValue], [currentUser, setCurrentUser] = [curUserS.value, curUserS.setValue];
-  const [transactions, setTransactions] = [txS.value, txS.setValue], [awards, setAwards] = [awardS.value, awardS.setValue];
+  const [transactions, setTransactions] = [txS.value, txS.setValue];
   const [unlockedBoards, setUnlockedBoards] = useState<string[]>([]), [isInit, setIsInit] = useState(true);
 
   useEffect(() => {
@@ -166,7 +162,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       } 
   };
 
-  // Wallet Logic Implementation
   const buyKopeki = (a: number) => {
     if(!currentUser) return {success:false, message:'Login'};
     const updatedUser = { ...currentUser, kopeki: (currentUser.kopeki || 0) + a };
@@ -342,32 +337,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const trackAdClick = (id: string) => setAds(o => o.map(a => (a.id === id && a.status === 'active') ? {...a, clicks: a.clicks + 1, spent: a.spent + (a.model === 'CPC' ? a.bidAmount : 0)} : a));
   const getActiveAdsForBoard = (bid: string) => ads.filter(a => a.boardId === bid && a.status === 'active');
 
-  const giveAward = (eid: string, et: any, aid: string, rid: string) => {
-    if(!currentUser) return {success:false, message:'Login'};
-    const awardDef = AVAILABLE_AWARDS.find(a => a.id === aid);
-    if (!awardDef) return {success:false, message:'Invalid award'};
-    if ((currentUser.kopeki || 0) < awardDef.cost) return {success:false, message:'Insufficient Kopeki'};
-
-    const receiver = users.find(u => u.id === rid);
-    if (!receiver) return {success:false, message:'Receiver not found'};
-
-    const updatedSender = { ...currentUser, kopeki: (currentUser.kopeki || 0) - awardDef.cost };
-    const updatedReceiver = { ...receiver, kopeki: (receiver.kopeki || 0) + awardDef.cost };
-
-    setUsers(prev => prev.map(u => u.id === currentUser.id ? updatedSender : u.id === receiver.id ? updatedReceiver : u));
-    setCurrentUser(updatedSender);
-
-    const award: Award = { id: crypto.randomUUID(), typeId: aid, senderId: currentUser.id, receiverId: rid, entityId: eid, entityType: et, createdAt: new Date().toISOString() };
-    setAwards(o => [...o, award]);
-
-    setTransactions(prev => [
-        { id: crypto.randomUUID(), userId: currentUser.id, type: 'award_given', amount: awardDef.cost, description: `Gave ${awardDef.label}`, createdAt: new Date().toISOString() },
-        { id: crypto.randomUUID(), userId: receiver.id, type: 'award_received', amount: awardDef.cost, description: `Received ${awardDef.label}`, createdAt: new Date().toISOString() },
-        ...prev
-    ]);
-    return { success: true, message: 'OK' };
-  };
-
   const unlockProfilePost = (pid: string) => {
     if(!currentUser) return {success:false, message:'Login'};
     const post = profilePosts.find(p => p.id === pid);
@@ -393,7 +362,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const authCtx = useMemo(() => ({ currentUser, users, transactions, login, register, logout, getUserById, getUserByUsername, isAdmin, changePassword, updateProfile, moveConversationToJunk, moveConversationToInbox, buyKopeki, sellKopeki, addCreditCard, removeCreditCard, addIban, removeIban, getUserTransactions }), [currentUser, users, transactions]);
-  const dataCtx = useMemo(() => ({ boards, posts, profilePosts, editorials, comments, messages, votes, subscriptions, follows, ads, awards, createBoard, createPost, createProfilePost, createEditorial, updatePost, updateProfilePost, updateEditorial, updateBoard, addComment, castVote, getBoardByName, deletePost, deleteProfilePost, deleteEditorial, deleteComment, appointModerator, isModerator, appointAdmin, isBoardAdmin, inviteUserToBoard, removeUserFromBoard, subscribe, unsubscribe, isSubscribed, followUser, unfollowUser, isFollowing, sendMessage, markConversationAsRead, unlockBoard, isBoardUnlocked, createAd, approveAd, rejectAd, trackAdImpression, trackAdClick, getActiveAdsForBoard, respondToBoardInvite, giveAward, unlockProfilePost }), [boards, posts, profilePosts, editorials, comments, messages, votes, subscriptions, follows, ads, awards, currentUser, users]);
+  const dataCtx = useMemo(() => ({ boards, posts, profilePosts, editorials, comments, messages, votes, subscriptions, follows, ads, createBoard, createPost, createProfilePost, createEditorial, updatePost, updateProfilePost, updateEditorial, updateBoard, addComment, castVote, getBoardByName, deletePost, deleteProfilePost, deleteEditorial, deleteComment, appointModerator, isModerator, appointAdmin, isBoardAdmin, inviteUserToBoard, removeUserFromBoard, subscribe, unsubscribe, isSubscribed, followUser, unfollowUser, isFollowing, sendMessage, markConversationAsRead, unlockBoard, isBoardUnlocked, createAd, approveAd, rejectAd, trackAdImpression, trackAdClick, getActiveAdsForBoard, respondToBoardInvite, unlockProfilePost }), [boards, posts, profilePosts, editorials, comments, messages, votes, subscriptions, follows, ads, currentUser, users]);
 
   if (isInit) return React.createElement('div', { className: "h-screen flex items-center justify-center" }, "Loading...");
   return React.createElement(AuthContext.Provider, { value: authCtx }, React.createElement(DataContext.Provider, { value: dataCtx }, children));

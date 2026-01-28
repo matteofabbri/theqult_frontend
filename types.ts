@@ -1,5 +1,4 @@
 
-
 export interface User {
   id: string;
   username: string;
@@ -12,7 +11,6 @@ export interface User {
   junkSenders?: string[];
   countryCode?: string;
   publicKey?: string;
-  // Added properties for wallet and verification
   kopeki?: number;
   savedCards?: CreditCard[];
   savedIbans?: Iban[];
@@ -21,7 +19,6 @@ export interface User {
   subscriptionFee?: number;
 }
 
-// Added CreditCard interface
 export interface CreditCard {
   id: string;
   last4: string;
@@ -29,7 +26,6 @@ export interface CreditCard {
   brand: string;
 }
 
-// Added Iban interface
 export interface Iban {
   id: string;
   iban: string;
@@ -51,7 +47,6 @@ export interface Board {
   password?: string;
   isInviteOnly?: boolean;
   allowedUserIds?: string[];
-  // Added entryFee property
   entryFee?: number;
 }
 
@@ -78,7 +73,6 @@ export interface ProfilePost {
   media?: MediaItem[];
   authorId: string;
   createdAt: string;
-  // Added price and unlockedUserIds for exclusive content
   price?: number;
   unlockedUserIds?: string[];
 }
@@ -117,7 +111,6 @@ export interface Message {
     boardName?: string;
     inviteStatus?: 'pending' | 'accepted' | 'rejected';
   };
-  // Added kopekiAmount for P2P transfers
   kopekiAmount?: number;
 }
 
@@ -151,32 +144,29 @@ export interface Advertisement {
   views: number;
   clicks: number;
   createdAt: string;
-  // Added ad specific properties
   budget: number;
   spent: number;
   model: 'CPC' | 'CPM';
   bidAmount: number;
 }
 
-// Added Transaction interface for wallet history
 export interface Transaction {
   id: string;
   userId: string;
-  type: 'buy' | 'sell' | 'fee_payment' | 'fee_income' | 'award_given' | 'award_received' | 'post_unlock' | 'post_income' | 'p2p_transfer' | 'ad_payment' | 'ad_refund';
+  type: 'buy' | 'sell' | 'fee_payment' | 'fee_income' | 'post_unlock' | 'post_income' | 'p2p_transfer' | 'ad_payment' | 'ad_refund' | 'award_given' | 'award_received';
   amount: number;
   currencyAmount?: number;
   description: string;
   createdAt: string;
 }
 
-// Added UserSubscription interface
 export interface UserSubscription {
   subscriberId: string;
   creatorId: string;
   startedAt: string;
 }
 
-// Added Award interface
+// Added missing Award interface as required by Backend services
 export interface Award {
   id: string;
   typeId: string;

@@ -3,15 +3,13 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { ProfilePost } from '../types';
 import { useAuth, useData, getFlagUrl, timeAgo } from '../hooks/useStore';
-import { CommentIcon, ThumbsDownIcon, HeartIcon, ReportIcon, GiftIcon, WalletIcon } from './Icons';
+import { CommentIcon, ThumbsDownIcon, HeartIcon, ReportIcon, WalletIcon } from './Icons';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import UserAvatar from './UserAvatar';
 import ReportModal from './ReportModal';
 import PostMedia from './PostMedia';
-import AwardModal from './AwardModal';
-import { AVAILABLE_AWARDS } from './Awards';
 import AuthModal from './AuthModal';
 
 interface ProfilePostCardProps {
@@ -21,10 +19,8 @@ interface ProfilePostCardProps {
 
 const ProfilePostCard: React.FC<ProfilePostCardProps> = ({ post, isFullView = false }) => {
   const { getUserById, currentUser } = useAuth();
-  // Fixed missing awards and unlockProfilePost from useData
-  const { comments, deleteProfilePost, votes, castVote, awards, unlockProfilePost } = useData();
+  const { comments, deleteProfilePost, votes, castVote, unlockProfilePost } = useData();
   const [isReportModalOpen, setReportModalOpen] = useState(false);
-  const [isAwardModalOpen, setAwardModalOpen] = useState(false);
   const [isAuthModalOpen, setAuthModalOpen] = useState(false);
   const [unlockError, setUnlockError] = useState('');
 
@@ -35,9 +31,6 @@ const ProfilePostCard: React.FC<ProfilePostCardProps> = ({ post, isFullView = fa
   const score = entityVotes.reduce((acc, vote) => acc + (vote.type === 'up' ? 1 : -1), 0);
   const userVote = currentUser ? entityVotes.find((v) => v.userId === currentUser.id) : undefined;
 
-  const postAwards = awards.filter(a => a.entityId === post.id);
-  const groupedAwards = postAwards.reduce((acc, award) => { acc[award.typeId] = (acc[award.typeId] || 0) + 1; return acc; }, {} as Record<string, number>);
-  // Fixed ProfilePost property access for price and unlockedUserIds
   const isLocked = !!(post.price && post.price > 0 && currentUser?.id !== post.authorId && !post.unlockedUserIds?.includes(currentUser?.id || ''));
 
   const handleVote = (type: 'up' | 'down') => { if (currentUser) castVote(post.id, type); else setAuthModalOpen(true); };
@@ -64,19 +57,9 @@ const ProfilePostCard: React.FC<ProfilePostCardProps> = ({ post, isFullView = fa
           <span>Posted by {author ? <Link to={`/u/${author.username}`} className="hover:underline text-gray-800 font-bold">u/{author.username}</Link> : 'u/unknown'}</span>
           <span className="mx-1">•</span>
           <span>{timeAgo(post.createdAt)}</span>
-          {/* Fixed price access */}
           {post.price && post.price > 0 && <span className="ml-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5 rounded-full font-bold flex items-center gap-1"><WalletIcon className="w-3 h-3" />{post.price} K</span>}
         </div>
         
-        {Object.keys(groupedAwards).length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-2">
-                {Object.entries(groupedAwards).map(([awardId, count]) => {
-                    const awardDef = AVAILABLE_AWARDS.find(a => a.id === awardId); if (!awardDef) return null;
-                    return <div key={awardId} className="flex items-center bg-gray-100 rounded-full px-2 py-0.5 border border-gray-200" title={awardDef.label}><div className={`w-4 h-4 mr-1 ${awardDef.color}`}><awardDef.icon /></div>{(count as number) > 1 && <span className="text-xs font-bold text-gray-600">{count as number}</span>}</div>;
-                })}
-            </div>
-        )}
-
         <Link to={postLink}><h2 className="text-xl font-semibold text-gray-800 mb-1 hover:text-primary transition-colors pr-8">{post.title}</h2></Link>
         
         {isLocked ? (
@@ -86,7 +69,6 @@ const ProfilePostCard: React.FC<ProfilePostCardProps> = ({ post, isFullView = fa
                      <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm text-yellow-500"><svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>
                      <h3 className="text-lg font-bold text-gray-800 mb-1">Exclusive Content</h3>
                      <p className="text-gray-600 mb-4 text-sm">Unlock this post to see the full content and media.</p>
-                     {/* Fixed price access */}
                      <button onClick={handleUnlock} className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-full shadow-md flex items-center gap-2 transition-transform active:scale-95 mx-auto"><span>Unlock for {post.price} K</span></button>
                      {unlockError && <p className="text-red-500 text-xs mt-2 font-semibold">{unlockError}</p>}
                      {!currentUser && <p className="text-xs text-gray-500 mt-3">You must be logged in to unlock.</p>}
@@ -115,16 +97,12 @@ const ProfilePostCard: React.FC<ProfilePostCardProps> = ({ post, isFullView = fa
             <Link to={postLink} className="flex items-center gap-2 text-gray-500 hover:bg-gray-100 px-3 py-1 rounded-md text-sm font-semibold w-fit">
                 <CommentIcon className="w-4 h-4" /><span>{commentCount} Comments</span>
             </Link>
-            {currentUser && author && currentUser.id !== author.id && (
-                <button onClick={() => setAwardModalOpen(true)} className="flex items-center gap-2 text-gray-500 hover:bg-gray-100 hover:text-yellow-600 px-3 py-1 rounded-md text-sm font-semibold w-fit transition-colors"><GiftIcon className="w-4 h-4" /><span className="hidden sm:inline">Award</span></button>
-            )}
             {canModerate && <Link to={`${postLink}/edit`} className="text-sm font-semibold text-blue-500 hover:bg-blue-50 px-3 py-1 rounded-md">Edit</Link>}
             {canModerate && <button onClick={handleDelete} className="text-sm font-semibold text-red-500 hover:bg-red-50 px-3 py-1 rounded-md">Delete</button>}
             </div>
         )}
       </div>
       {isReportModalOpen && <ReportModal entityId={post.id} entityType="post" onClose={() => setReportModalOpen(false)} />}
-      {isAwardModalOpen && post.authorId && <AwardModal entityId={post.id} entityType="post" receiverId={post.authorId} onClose={() => setAwardModalOpen(false)} />}
       {isAuthModalOpen && <AuthModal onClose={() => setAuthModalOpen(false)} />}
        <style>{`.mask-gradient { mask-image: linear-gradient(to bottom, black 60%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%); }`}</style>
     </article>

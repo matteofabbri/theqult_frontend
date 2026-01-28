@@ -7,27 +7,23 @@ import ProfilePostCard from '../components/ProfilePostCard';
 import UserAvatar from '../components/UserAvatar';
 import { HeartIcon, TrendingUpIcon, UsersIcon, MessageIcon, NewspaperIcon } from '../components/Icons';
 import AuthModal from '../components/AuthModal';
-import { AVAILABLE_AWARDS } from '../components/Awards';
 
 const UserProfilePage: React.FC = () => {
   const { username } = useParams<{ username: string }>();
   const { currentUser, getUserByUsername } = useAuth();
-  // Fixed missing awards from useData
-  const { posts, profilePosts, comments, votes, follows, followUser, unfollowUser, isFollowing, awards } = useData();
+  const { posts, profilePosts, comments, votes, follows, followUser, unfollowUser, isFollowing } = useData();
   const navigate = useNavigate();
   
   const [authModalState, setAuthModalState] = useState<{ isOpen: boolean; view: 'login' | 'signup' }>({ isOpen: false, view: 'login' });
   
   const user = username ? getUserByUsername(username) : undefined;
 
-  const { userContent, totalKarma, engagement, followersCount, userAwards } = useMemo(() => {
-    if (!user) return { userContent: [], totalKarma: 0, engagement: 0, followersCount: 0, userAwards: [] };
+  const { userContent, totalKarma, engagement, followersCount } = useMemo(() => {
+    if (!user) return { userContent: [], totalKarma: 0, engagement: 0, followersCount: 0 };
     
-    // Content for the user's profile feed is only their profile posts
     const userProfilePosts = profilePosts.filter(p => p.authorId === user.id)
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-    // For karma and engagement, we need all their contributions
     const userBoardPosts = posts.filter(p => p.authorId === user.id);
     const userComments = comments.filter(c => c.authorId === user.id);
 
@@ -47,23 +43,8 @@ const UserProfilePage: React.FC = () => {
     const engagement = userComments.length;
     const followersCount = follows.filter(f => f.followingId === user.id).length;
 
-    // Calculate Awards
-    const receivedAwards = awards.filter(a => a.receiverId === user.id);
-    const groupedAwards = receivedAwards.reduce((acc, award) => {
-        acc[award.typeId] = (acc[award.typeId] || 0) + 1;
-        return acc;
-    }, {} as Record<string, number>);
-
-    const userAwards = AVAILABLE_AWARDS
-        .filter(def => groupedAwards[def.id])
-        .map(def => ({
-            ...def,
-            count: groupedAwards[def.id]
-        }))
-        .sort((a, b) => b.cost - a.cost); // Show most expensive/rare first
-
-    return { userContent: userProfilePosts, totalKarma, engagement, followersCount, userAwards };
-  }, [user, posts, profilePosts, comments, votes, follows, awards]);
+    return { userContent: userProfilePosts, totalKarma, engagement, followersCount };
+  }, [user, posts, profilePosts, comments, votes, follows]);
 
   const isCurrentUserFollowing = user ? isFollowing(user.id) : false;
   const isOwnProfile = currentUser?.id === user?.id;
@@ -222,33 +203,6 @@ const UserProfilePage: React.FC = () => {
                         </div>
                         <span className="text-sm font-bold text-gray-900">{userContent.length}</span>
                     </div>
-                </div>
-            </div>
-
-            {/* Awards Trophy Case Widget */}
-            <div className="bg-white border border-gray-200 rounded-md overflow-hidden">
-                <div className="p-3 border-b border-gray-200 bg-gray-50">
-                    <h3 className="font-bold text-gray-700 text-sm uppercase tracking-wide">Trophy Case</h3>
-                </div>
-                <div className="p-4">
-                    {userAwards.length > 0 ? (
-                        <div className="grid grid-cols-4 gap-3">
-                            {userAwards.map(award => (
-                                <div key={award.id} className="flex flex-col items-center group relative cursor-help" title={`${award.label}: ${award.description}`}>
-                                    <div className={`w-8 h-8 ${award.color} mb-1 transition-transform group-hover:scale-110`}>
-                                        <award.icon className="w-full h-full" />
-                                    </div>
-                                    <span className="text-[10px] font-bold text-gray-500 bg-gray-100 border border-gray-200 px-1.5 rounded-full">
-                                        {award.count}
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="text-center text-gray-400 py-2 text-sm italic">
-                            No awards yet.
-                        </div>
-                    )}
                 </div>
             </div>
 

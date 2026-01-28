@@ -6,13 +6,11 @@ import { useAuth, useData, getFlagUrl, timeAgo } from '../hooks/useStore';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
-import { ThumbsDownIcon, HeartIcon, ReportIcon, GiftIcon } from './Icons';
+import { ThumbsDownIcon, HeartIcon, ReportIcon } from './Icons';
 import UserAvatar from './UserAvatar';
 import MarkdownEditor from './MarkdownEditor';
 import ReportModal from './ReportModal';
-import AwardModal from './AwardModal';
 import AuthModal from './AuthModal';
-import { AVAILABLE_AWARDS } from './Awards';
 import PostMedia from './PostMedia';
 import MediaUploader from './MediaUploader';
 
@@ -24,14 +22,12 @@ interface CommentProps {
 
 const Comment: React.FC<CommentProps> = ({ comment, allComments, boardId }) => {
   const { getUserById, currentUser, isAdmin } = useAuth();
-  // Fixed missing awards from useData
-  const { addComment, isModerator, deleteComment, isBoardAdmin, votes, castVote, awards } = useData();
+  const { addComment, isModerator, deleteComment, isBoardAdmin, votes, castVote } = useData();
   const author = comment.authorId ? getUserById(comment.authorId) : undefined;
   const [replying, setReplying] = useState(false);
   const [replyContent, setReplyContent] = useState('');
   const [replyMedia, setReplyMedia] = useState<MediaItem[]>([]);
   const [isReportModalOpen, setReportModalOpen] = useState(false);
-  const [isAwardModalOpen, setAwardModalOpen] = useState(false);
   const [isAuthModalOpen, setAuthModalOpen] = useState(false);
 
   const parentComment = comment.parentId ? allComments.find(c => c.id === comment.parentId) : null;
@@ -42,11 +38,7 @@ const Comment: React.FC<CommentProps> = ({ comment, allComments, boardId }) => {
   const score = entityVotes.reduce((acc, vote) => acc + (vote.type === 'up' ? 1 : -1), 0);
   const userVote = currentUser ? entityVotes.find((v) => v.userId === currentUser.id) : undefined;
   
-  const commentAwards = awards.filter(a => a.entityId === comment.id);
-  const groupedAwards = commentAwards.reduce((acc, award) => { acc[award.typeId] = (acc[award.typeId] || 0) + 1; return acc; }, {} as Record<string, number>);
-
   const handleVote = (type: 'up' | 'down') => { if (currentUser) castVote(comment.id, type); else setAuthModalOpen(true); };
-  const handleGiveAward = () => { if (currentUser) setAwardModalOpen(true); else setAuthModalOpen(true); };
   const handleDelete = () => { if (window.confirm('Delete comment?')) deleteComment(comment.id); };
   
   const handleReplySubmit = (e: React.FormEvent) => {
@@ -74,14 +66,6 @@ const Comment: React.FC<CommentProps> = ({ comment, allComments, boardId }) => {
               {author ? <Link to={`/u/${author.username}`} className="font-semibold text-gray-800 hover:underline">{author.username}</Link> : <span className="font-semibold text-gray-800">anonymous</span>}
               <span className="mx-1">•</span>
               <span>{timeAgo(comment.createdAt)}</span>
-              {Object.keys(groupedAwards).length > 0 && (
-                  <div className="flex flex-wrap gap-1 ml-2">
-                      {Object.entries(groupedAwards).map(([awardId, count]) => {
-                          const awardDef = AVAILABLE_AWARDS.find(a => a.id === awardId); if (!awardDef) return null;
-                          return <div key={awardId} className="flex items-center bg-gray-100 rounded-full px-1.5 py-0.5 border border-gray-200"><div className={`w-3 h-3 mr-1 ${awardDef.color}`}><awardDef.icon /></div>{(count as number)>1 && <span className="text-[10px] font-bold text-gray-600">{count as number}</span>}</div>;
-                      })}
-                  </div>
-              )}
             </div>
             <div className="flex items-center gap-1">
               <button onClick={() => setReportModalOpen(true)} className="p-1 -mt-1 rounded-sm text-gray-400 hover:text-yellow-500"><ReportIcon className="w-4 h-4" /></button>
@@ -114,7 +98,6 @@ const Comment: React.FC<CommentProps> = ({ comment, allComments, boardId }) => {
                   <span className={`text-xs font-semibold ${userVote?.type === 'up' ? 'text-red-600' : 'text-gray-600'}`}>{score}</span>
               </div>
               <button onClick={() => setReplying(!replying)} className="text-xs font-semibold text-gray-500 hover:text-gray-800">Reply</button>
-              {author && (!currentUser || currentUser.id !== author.id) && <button onClick={handleGiveAward} className="flex items-center gap-1 text-gray-500 hover:text-yellow-600 text-xs font-semibold transition-colors"><GiftIcon className="w-3 h-3" /><span className="hidden sm:inline">Award</span></button>}
               {canModerate && <button onClick={handleDelete} className="text-xs font-semibold text-red-500 hover:text-red-700">Delete</button>}
           </div>
 
@@ -131,7 +114,6 @@ const Comment: React.FC<CommentProps> = ({ comment, allComments, boardId }) => {
         </div>
       </div>
       {isReportModalOpen && <ReportModal entityId={comment.id} entityType="comment" onClose={() => setReportModalOpen(false)} />}
-      {isAwardModalOpen && comment.authorId && <AwardModal entityId={comment.id} entityType="comment" receiverId={comment.authorId} onClose={() => setAwardModalOpen(false)} />}
       {isAuthModalOpen && <AuthModal onClose={() => setAuthModalOpen(false)} />}
     </>
   );
