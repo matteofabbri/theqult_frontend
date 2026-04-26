@@ -4,7 +4,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useData, useAuth } from '../hooks/useStore';
 import NotFoundPage from './NotFoundPage';
 import BoardIcon from '../components/BoardIcon';
-import { CheckIcon, CloseIcon } from '../components/Icons';
+import { CheckIcon, CloseIcon, MessageIcon } from '../components/Icons';
 
 const BoardSettingsPage: React.FC = () => {
   const { boardName } = useParams<{ boardName: string }>();
@@ -67,7 +67,7 @@ const BoardSettingsPage: React.FC = () => {
         } else if (board.password) {
             setAccessType('password');
             setNewPassword(board.password);
-        } else if (board.entryFee && board.entryFee > 0) { // Fixed entryFee access
+        } else if (board.entryFee && board.entryFee > 0) {
             setAccessType('paid');
             setEntryFee(board.entryFee.toString());
         } else {
@@ -91,7 +91,7 @@ const BoardSettingsPage: React.FC = () => {
 
 
   if (!board) {
-    return <NotFoundPage />; // Or a loading state
+    return <NotFoundPage />;
   }
 
   const boardAdmins = board.adminIds.map(id => getUserById(id)).filter(Boolean) as { id: string, username: string }[];
@@ -221,28 +221,33 @@ const BoardSettingsPage: React.FC = () => {
       if (!inviteUsername.trim()) return;
       const result = inviteUserToBoard(board.id, inviteUsername);
       setInviteMessage({ type: result.success ? 'success' : 'error', text: result.message });
-      if (result.success) setInviteUsername('');
+      if (result.success) {
+          setInviteUsername('');
+          setInviteMessage({ type: 'success', text: `Messaggio d'invito inviato a ${inviteUsername}!` });
+      }
       setInviteSuggestions([]);
-      setTimeout(() => setInviteMessage({ type: '', text: '' }), 3000);
+      setTimeout(() => setInviteMessage({ type: '', text: '' }), 4000);
   };
 
   const handleRemoveUser = (userId: string) => {
-      removeUserFromBoard(board.id, userId);
+      if (window.confirm('Revocare l\'accesso a questo utente?')) {
+          removeUserFromBoard(board.id, userId);
+      }
   };
 
   return (
     <div className="container mx-auto p-4 md:p-6 max-w-4xl">
-      <Link to={`/b/${board.name}`} className="text-gray-500 hover:text-gray-900 mb-6 inline-block font-medium">&larr; Back to Board</Link>
+      <Link to={`/b/${board.name}`} className="text-gray-500 hover:text-gray-900 mb-6 inline-block font-medium">&larr; Torna alla Board</Link>
       <div className="flex items-center gap-4 mb-8">
           <BoardIcon board={board} className="w-16 h-16"/>
-          <h1 className="text-3xl font-bold text-gray-900">Settings: b/{board.name}</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Impostazioni: b/{board.name}</h1>
       </div>
 
       <div className="space-y-8">
         
         {/* SECTION 1: APPEARANCE */}
         <div className="bg-white rounded-md border border-gray-200 p-6 shadow-sm">
-            <h2 className="text-xl font-bold text-gray-800 mb-4 border-b border-gray-100 pb-2">Appearance</h2>
+            <h2 className="text-xl font-bold text-gray-800 mb-4 border-b border-gray-100 pb-2">Aspetto</h2>
             <form onSubmit={handleAppearanceSubmit} className="space-y-4">
                  {appearanceMessage.text && (
                     <p className={`p-3 rounded-md text-sm ${appearanceMessage.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
@@ -252,13 +257,13 @@ const BoardSettingsPage: React.FC = () => {
                 
                 <div className="flex gap-6 items-start">
                     <div className="flex-1">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Icon</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Icona</label>
                         <div className="flex items-center gap-4">
                             <div className="w-16 h-16 rounded-full bg-gray-100 overflow-hidden border border-gray-200">
                                 {iconUrl ? <img src={iconUrl} alt="icon" className="w-full h-full object-cover"/> : <BoardIcon board={board} className="w-full h-full"/>}
                             </div>
                              <div>
-                                <button type="button" onClick={() => iconInputRef.current?.click()} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-sm font-semibold transition-colors">Upload</button>
+                                <button type="button" onClick={() => iconInputRef.current?.click()} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-sm font-semibold transition-colors">Carica</button>
                                 <input type="file" ref={iconInputRef} onChange={handleIconUpload} accept="image/*" className="hidden"/>
                             </div>
                         </div>
@@ -270,32 +275,32 @@ const BoardSettingsPage: React.FC = () => {
                             style={{ backgroundImage: `url(${previewBannerSrc})` }}
                          ></div>
                          <div>
-                            <button type="button" onClick={() => bannerInputRef.current?.click()} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-sm font-semibold transition-colors">Upload Banner</button>
+                            <button type="button" onClick={() => bannerInputRef.current?.click()} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-sm font-semibold transition-colors">Carica Banner</button>
                              <input type="file" ref={bannerInputRef} onChange={handleBannerUpload} accept="image/*" className="hidden"/>
                         </div>
                     </div>
                 </div>
 
                 <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Description</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Descrizione</label>
                     <textarea 
                         value={description} 
                         onChange={(e) => setDescription(e.target.value)}
                         className="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary"
                         rows={3}
-                        placeholder="What is this community about?"
+                        placeholder="Di cosa tratta questa community?"
                     />
                 </div>
                 
                 <div className="flex justify-end">
-                    <button type="submit" className="bg-primary text-white font-bold py-2 px-6 rounded-md hover:opacity-90 transition-opacity">Save Appearance</button>
+                    <button type="submit" className="bg-primary text-white font-bold py-2 px-6 rounded-md hover:opacity-90 transition-opacity">Salva Aspetto</button>
                 </div>
             </form>
         </div>
 
         {/* SECTION 2: ACCESS & SECURITY */}
         <div className="bg-white rounded-md border border-gray-200 p-6 shadow-sm">
-             <h2 className="text-xl font-bold text-gray-800 mb-4 border-b border-gray-100 pb-2">Access & Permissions</h2>
+             <h2 className="text-xl font-bold text-gray-800 mb-4 border-b border-gray-100 pb-2">Accesso e Permessi</h2>
              <form onSubmit={handleSecuritySubmit} className="space-y-6">
                 {securityMessage.text && (
                     <p className={`p-3 rounded-md text-sm ${securityMessage.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
@@ -315,13 +320,13 @@ const BoardSettingsPage: React.FC = () => {
                                     onChange={(e) => setAccessType(e.target.value as any)}
                                     className="accent-primary"
                                 />
-                                <span className="font-bold text-gray-800 capitalize">{type}</span>
+                                <span className="font-bold text-gray-800 capitalize">{type === 'invite' ? 'Solo Invito' : type === 'paid' ? 'Premium' : type}</span>
                             </div>
-                            <p className="text-xs text-gray-500 pl-6">
-                                {type === 'public' && 'Anyone can view and join.'}
-                                {type === 'password' && 'Requires a password to view.'}
-                                {type === 'invite' && 'Only invited users can view.'}
-                                {type === 'paid' && 'Users pay Kopeki to enter.'}
+                            <p className="text-[10px] text-gray-500 pl-6 leading-tight">
+                                {type === 'public' && 'Chiunque può visualizzare e postare.'}
+                                {type === 'password' && 'Richiede una chiave per visualizzare i post.'}
+                                {type === 'invite' && 'Solo gli utenti invitati tramite PM possono entrare.'}
+                                {type === 'paid' && 'Richiede il pagamento di Kopeki per l\'accesso.'}
                             </p>
                          </label>
                     ))}
@@ -329,26 +334,26 @@ const BoardSettingsPage: React.FC = () => {
 
                 {accessType === 'password' && (
                     <div className="bg-yellow-50 p-4 rounded-md border border-yellow-200">
-                        <label className="block text-sm font-bold text-yellow-800 mb-1">Set Password</label>
+                        <label className="block text-sm font-bold text-yellow-800 mb-1">Imposta Password</label>
                         <input 
                             type="text" 
                             value={newPassword} 
                             onChange={(e) => setNewPassword(e.target.value)} 
                             className="w-full border border-yellow-300 rounded p-2"
-                            placeholder="Enter board password"
+                            placeholder="Inserisci la password della board"
                         />
                     </div>
                 )}
 
                 {accessType === 'paid' && (
                      <div className="bg-green-50 p-4 rounded-md border border-green-200">
-                        <label className="block text-sm font-bold text-green-800 mb-1">Entry Fee (Kopeki)</label>
+                        <label className="block text-sm font-bold text-green-800 mb-1">Fee di ingresso (Kopeki)</label>
                         <input 
                             type="number" 
                             value={entryFee} 
                             onChange={(e) => setEntryFee(e.target.value)} 
                             className="w-full border border-green-300 rounded p-2"
-                            placeholder="e.g. 500"
+                            placeholder="es. 500"
                             min="1"
                         />
                     </div>
@@ -358,38 +363,41 @@ const BoardSettingsPage: React.FC = () => {
                     <label className="flex items-center gap-3 cursor-pointer">
                         <input type="checkbox" checked={allowAnonymousPosts} onChange={e => setAllowAnonymousPosts(e.target.checked)} className="w-5 h-5 accent-primary" disabled={accessType !== 'public'} />
                         <div>
-                             <span className={`block font-semibold text-sm ${accessType !== 'public' ? 'text-gray-400' : 'text-gray-700'}`}>Allow Anonymous Posts</span>
-                             <span className="text-xs text-gray-500">Users can post without revealing their username (Public boards only).</span>
+                             <span className={`block font-semibold text-sm ${accessType !== 'public' ? 'text-gray-400' : 'text-gray-700'}`}>Consenti Post Anonimi</span>
+                             <span className="text-xs text-gray-500">Solo per board pubbliche.</span>
                         </div>
                     </label>
                     <label className="flex items-center gap-3 cursor-pointer">
                         <input type="checkbox" checked={allowAnonymousComments} onChange={e => setAllowAnonymousComments(e.target.checked)} className="w-5 h-5 accent-primary" disabled={accessType !== 'public'} />
                          <div>
-                             <span className={`block font-semibold text-sm ${accessType !== 'public' ? 'text-gray-400' : 'text-gray-700'}`}>Allow Anonymous Comments</span>
-                             <span className="text-xs text-gray-500">Users can comment without revealing their username (Public boards only).</span>
+                             <span className={`block font-semibold text-sm ${accessType !== 'public' ? 'text-gray-400' : 'text-gray-700'}`}>Consenti Commenti Anonimi</span>
+                             <span className="text-xs text-gray-500">Solo per board pubbliche.</span>
                         </div>
                     </label>
                 </div>
 
                 <div className="flex justify-end">
-                    <button type="submit" className="bg-primary text-white font-bold py-2 px-6 rounded-md hover:opacity-90 transition-opacity">Update Security</button>
+                    <button type="submit" className="bg-primary text-white font-bold py-2 px-6 rounded-md hover:opacity-90 transition-opacity">Aggiorna Sicurezza</button>
                 </div>
              </form>
 
-             {/* Invite Management (Only for Private/Paid) */}
+             {/* Invite Management */}
              {(accessType === 'invite' || accessType === 'paid') && (
                  <div className="mt-8 border-t border-gray-100 pt-6">
-                     <h3 className="font-bold text-gray-800 mb-3">Allowed Users</h3>
+                     <h3 className="font-bold text-gray-900 mb-1 flex items-center gap-2">
+                        <MessageIcon className="w-5 h-5 text-primary" /> Invia Inviti
+                     </h3>
+                     <p className="text-xs text-gray-500 mb-4">Cerca un utente per inviargli un messaggio privato d'invito.</p>
                      
                      <form onSubmit={handleInviteUser} className="flex gap-2 mb-4 relative">
                         <input
                             type="text"
                             value={inviteUsername}
                             onChange={(e) => handleUserSearchChange(e.target.value, setInviteUsername, setInviteSuggestions)}
-                            placeholder="Username to invite..."
+                            placeholder="Username da invitare..."
                             className="flex-1 border border-gray-300 rounded-md p-2"
                         />
-                        <button type="submit" className="bg-gray-800 text-white font-bold px-4 rounded-md">Add</button>
+                        <button type="submit" className="bg-gray-900 text-white font-bold px-4 rounded-md">Invia PM</button>
                          {inviteSuggestions.length > 0 && (
                             <ul className="absolute top-full left-0 w-full bg-white border border-gray-200 rounded-md shadow-lg z-10 max-h-40 overflow-y-auto">
                                 {inviteSuggestions.map(s => (
@@ -401,31 +409,36 @@ const BoardSettingsPage: React.FC = () => {
                         )}
                      </form>
                      {inviteMessage.text && (
-                        <p className={`mb-3 text-xs ${inviteMessage.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+                        <p className={`mb-3 text-xs font-bold ${inviteMessage.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
                             {inviteMessage.text}
                         </p>
                     )}
 
-                     <div className="bg-gray-50 rounded-md border border-gray-200 max-h-60 overflow-y-auto">
-                         {allowedUsers.length > 0 ? (
-                             <ul className="divide-y divide-gray-200">
-                                 {allowedUsers.map(u => (
-                                     <li key={u.id} className="p-3 flex justify-between items-center">
-                                         <div className="flex items-center gap-2">
-                                             <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center font-bold text-white text-xs">
-                                                 {u.username[0].toUpperCase()}
-                                             </div>
-                                             <span className="text-sm font-medium text-gray-700">{u.username}</span>
-                                         </div>
-                                         <button onClick={() => handleRemoveUser(u.id)} className="text-red-500 hover:bg-red-50 p-1 rounded">
-                                             <CloseIcon className="w-4 h-4"/>
-                                         </button>
-                                     </li>
-                                 ))}
-                             </ul>
-                         ) : (
-                             <p className="p-4 text-center text-gray-500 text-sm">No specific allowed users.</p>
-                         )}
+                     <div className="mt-6">
+                        <h4 className="text-sm font-bold text-gray-700 mb-2">Utenti con Accesso ({allowedUsers.length})</h4>
+                        <div className="bg-gray-50 rounded-md border border-gray-200 max-h-60 overflow-y-auto">
+                            {allowedUsers.length > 0 ? (
+                                <ul className="divide-y divide-gray-200">
+                                    {allowedUsers.map(u => (
+                                        <li key={u.id} className="p-3 flex justify-between items-center">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center font-bold text-white text-xs">
+                                                    {u.username[0].toUpperCase()}
+                                                </div>
+                                                <span className="text-sm font-medium text-gray-700">{u.username}</span>
+                                            </div>
+                                            {u.id !== board.creatorId && (
+                                                <button onClick={() => handleRemoveUser(u.id)} className="text-red-400 hover:text-red-600 hover:bg-red-50 p-1 rounded transition-colors" title="Rimuovi accesso">
+                                                    <CloseIcon className="w-4 h-4"/>
+                                                </button>
+                                            )}
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                <p className="p-4 text-center text-gray-500 text-sm">Nessun utente aggiunto oltre al creatore.</p>
+                            )}
+                        </div>
                      </div>
                  </div>
              )}
@@ -433,16 +446,15 @@ const BoardSettingsPage: React.FC = () => {
 
         {/* SECTION 3: ROLES */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Admins */}
              <div className="bg-white rounded-md border border-gray-200 p-6 shadow-sm">
-                <h2 className="text-xl font-bold text-gray-800 mb-4">Administrators</h2>
+                <h2 className="text-xl font-bold text-gray-800 mb-4">Amministratori</h2>
                 <form onSubmit={handleAppointAdmin} className="relative mb-4">
                     <div className="flex gap-2">
                         <input
                             type="text"
                             value={adminUsername}
                             onChange={(e) => handleUserSearchChange(e.target.value, setAdminUsername, setAdminSuggestions)}
-                            placeholder="Add admin..."
+                            placeholder="Aggiungi admin..."
                             className="flex-1 border border-gray-300 rounded-md p-2 text-sm"
                         />
                         <button type="submit" className="bg-gray-800 text-white font-bold px-3 rounded-md text-sm">Add</button>
@@ -468,16 +480,15 @@ const BoardSettingsPage: React.FC = () => {
                 </div>
             </div>
 
-            {/* Moderators */}
             <div className="bg-white rounded-md border border-gray-200 p-6 shadow-sm">
-                <h2 className="text-xl font-bold text-gray-800 mb-4">Moderators</h2>
+                <h2 className="text-xl font-bold text-gray-800 mb-4">Moderatori</h2>
                 <form onSubmit={handleAppointModerator} className="relative mb-4">
                     <div className="flex gap-2">
                         <input
                             type="text"
                             value={modUsername}
                             onChange={(e) => handleUserSearchChange(e.target.value, setModUsername, setModSuggestions)}
-                            placeholder="Add mod..."
+                            placeholder="Aggiungi mod..."
                             className="flex-1 border border-gray-300 rounded-md p-2 text-sm"
                         />
                         <button type="submit" className="bg-gray-800 text-white font-bold px-3 rounded-md text-sm">Add</button>
@@ -499,14 +510,14 @@ const BoardSettingsPage: React.FC = () => {
                              <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
                              <span className="text-sm font-medium text-gray-700">{mod.username}</span>
                         </div>
-                    )) : <p className="text-sm text-gray-400 italic">No moderators appointed.</p>}
+                    )) : <p className="text-sm text-gray-400 italic">Nessun moderatore nominato.</p>}
                 </div>
             </div>
         </div>
 
         {/* SECTION 4: ADVERTISEMENTS */}
         <div className="bg-white rounded-md border border-gray-200 p-6 shadow-sm">
-             <h2 className="text-xl font-bold text-gray-800 mb-4">Ad Requests</h2>
+             <h2 className="text-xl font-bold text-gray-800 mb-4">Richieste Pubblicitarie</h2>
              {boardAds.length > 0 ? (
                  <div className="space-y-4">
                      {boardAds.map(ad => (
@@ -515,33 +526,32 @@ const BoardSettingsPage: React.FC = () => {
                              <div className="flex-1">
                                  <div className="flex justify-between items-start">
                                      <h4 className="font-bold text-gray-900">{ad.title}</h4>
-                                     <span className={`text-xs font-bold px-2 py-1 rounded uppercase ${ad.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{ad.status}</span>
+                                     <span className={`text-[10px] font-black px-2 py-0.5 rounded uppercase ${ad.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{ad.status}</span>
                                  </div>
-                                 <p className="text-sm text-gray-600 mb-2">{ad.content}</p>
-                                 <div className="flex gap-4 text-xs text-gray-500">
-                                     {/* Fixed Advertisement property access */}
+                                 <p className="text-xs text-gray-600 mb-2">{ad.content}</p>
+                                 <div className="flex gap-4 text-[10px] font-bold text-gray-400">
                                      <span>Budget: {ad.budget} K</span>
-                                     <span>Bid: {ad.bidAmount} K ({ad.model})</span>
-                                     <span>Views: {ad.views}</span>
-                                     <span>Clicks: {ad.clicks}</span>
+                                     <span>Modello: {ad.model}</span>
+                                     <span>Viste: {ad.views}</span>
+                                     <span>Click: {ad.clicks}</span>
                                  </div>
                              </div>
                              <div className="flex flex-col gap-2 min-w-[100px]">
                                  {ad.status === 'pending' && (
                                      <>
-                                        <button onClick={() => approveAd(ad.id)} className="bg-green-600 text-white text-xs font-bold py-1 px-3 rounded hover:bg-green-700">Approve</button>
-                                        <button onClick={() => rejectAd(ad.id)} className="bg-red-100 text-red-600 text-xs font-bold py-1 px-3 rounded hover:bg-red-200">Reject</button>
+                                        <button onClick={() => approveAd(ad.id)} className="bg-green-600 text-white text-xs font-bold py-1.5 px-3 rounded-full hover:bg-green-700 shadow-sm transition-all">Approva</button>
+                                        <button onClick={() => rejectAd(ad.id)} className="bg-red-50 text-red-600 text-xs font-bold py-1.5 px-3 rounded-full hover:bg-red-100 transition-all">Rifiuta</button>
                                      </>
                                  )}
                                  {ad.status === 'active' && (
-                                     <button onClick={() => rejectAd(ad.id)} className="border border-red-200 text-red-600 text-xs font-bold py-1 px-3 rounded hover:bg-red-50">Stop Ad</button>
+                                     <button onClick={() => rejectAd(ad.id)} className="border border-red-200 text-red-600 text-xs font-bold py-1.5 px-3 rounded-full hover:bg-red-50 transition-all">Ferma Ad</button>
                                  )}
                              </div>
                          </div>
                      ))}
                  </div>
              ) : (
-                 <p className="text-gray-500 italic">No ad requests for this board.</p>
+                 <p className="text-gray-400 text-sm italic py-4 text-center border-2 border-dashed border-gray-100 rounded-xl">Nessuna richiesta pubblicitaria per questa board.</p>
              )}
         </div>
 

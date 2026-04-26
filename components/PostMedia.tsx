@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeftIcon, ChevronRightIcon, CloseIcon } from './Icons';
+import { ChevronLeftIcon, ChevronRightIcon, CloseIcon, FileIcon } from './Icons';
 import type { MediaItem } from '../types';
 
 interface PostMediaProps {
@@ -39,13 +39,17 @@ const PostMedia: React.FC<PostMediaProps> = ({ media, postLink, compact = false 
             </div>
           );
       }
-      if (item.type === 'audio') {
+      if (item.type === 'audio' || item.type === 'file') {
           return (
             <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 p-4">
-                <div className="bg-orange-100 p-6 rounded-full mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 text-orange-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>
+                <div className={`${item.type === 'audio' ? 'bg-orange-100' : 'bg-blue-100'} p-6 rounded-full mb-4`}>
+                    {item.type === 'audio' ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 text-orange-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>
+                    ) : (
+                        <FileIcon className="w-12 h-12 text-blue-500" />
+                    )}
                 </div>
-                <p className="text-gray-500 font-medium">Audio Clip</p>
+                <p className="text-gray-500 font-medium truncate max-w-full px-4">{item.name || (item.type === 'audio' ? 'Audio Clip' : 'Document')}</p>
             </div>
           );
       }
@@ -76,11 +80,7 @@ const PostMedia: React.FC<PostMediaProps> = ({ media, postLink, compact = false 
 
   // --- PREVIEW MODE (Navigation) ---
   if (postLink) {
-      // If we are in a feed, we want to click to navigate.
-      // We render non-interactive previews for Video/Audio so clicks go to the Link.
-      
       const isSingle = media.length === 1;
-      
       return (
         <Link 
             to={postLink} 
@@ -90,7 +90,6 @@ const PostMedia: React.FC<PostMediaProps> = ({ media, postLink, compact = false 
                  media[0].type === 'image' ? (
                      <img src={media[0].url} alt="post content" className="max-w-full max-h-[500px] object-contain" />
                  ) : (
-                     // For Video/Audio in preview, use the visual placeholder logic so clicking navigates instead of playing
                      <div className="w-full h-full min-h-[300px]">
                         {renderPreviewContent(media[0])}
                      </div>
@@ -105,7 +104,6 @@ const PostMedia: React.FC<PostMediaProps> = ({ media, postLink, compact = false 
 
   // --- DETAIL / INTERACTIVE MODE ---
 
-  // 1. Single Item View (Interactive)
   if (media.length === 1) {
     const item = media[0];
     return (
@@ -113,6 +111,19 @@ const PostMedia: React.FC<PostMediaProps> = ({ media, postLink, compact = false 
         {item.type === 'image' && <img src={item.url} alt="post content" className={`max-w-full ${singleMediaMaxHeight} object-contain`} />}
         {item.type === 'video' && <video src={item.url} controls className={`max-w-full ${singleMediaMaxHeight}`} />}
         {item.type === 'audio' && <audio src={item.url} controls className="w-full p-4" />}
+        {item.type === 'file' && (
+            <div className="w-full p-8 flex flex-col items-center bg-gray-50">
+                <FileIcon className="w-16 h-16 text-primary mb-4" />
+                <h3 className="font-bold text-gray-900 mb-2 truncate max-w-xs">{item.name || 'File Document'}</h3>
+                <a 
+                    href={item.url} 
+                    download={item.name || 'file'} 
+                    className="bg-primary text-white font-black py-2 px-8 rounded-full shadow-lg shadow-primary/20 hover:bg-orange-600 transition-all"
+                >
+                    Scarica File
+                </a>
+            </div>
+        )}
       </div>
     );
   }
@@ -145,8 +156,6 @@ const PostMedia: React.FC<PostMediaProps> = ({ media, postLink, compact = false 
 
   return (
     <div className={`${containerMargin} relative bg-black rounded-lg border border-gray-800 overflow-hidden group ${carouselHeight}`}>
-       
-       {/* Close / Collapse Button */}
        <button 
          onClick={(e) => { e.stopPropagation(); setIsExpanded(false); }}
          className="absolute top-4 right-4 z-20 bg-black/50 text-white p-2 rounded-full hover:bg-black/80 transition-colors"
@@ -155,7 +164,6 @@ const PostMedia: React.FC<PostMediaProps> = ({ media, postLink, compact = false 
            <CloseIcon className="w-6 h-6" />
        </button>
 
-       {/* Main Content Area */}
        <div className="w-full h-full flex items-center justify-center bg-black">
             {currentItem?.type === 'image' && (
                 <img src={currentItem.url} alt={`slide ${currentIndex}`} className="w-full h-full object-contain" />
@@ -168,28 +176,36 @@ const PostMedia: React.FC<PostMediaProps> = ({ media, postLink, compact = false 
                         <audio src={currentItem.url} controls className="w-full max-w-md" />
                 </div>
             )}
+            {currentItem?.type === 'file' && (
+                <div className="w-full p-12 bg-gray-900 flex flex-col items-center justify-center h-full text-white">
+                        <FileIcon className="w-20 h-20 mb-4 opacity-50" />
+                        <h4 className="text-xl font-bold mb-4">{currentItem.name}</h4>
+                        <a href={currentItem.url} download={currentItem.name} className="bg-primary text-white py-2 px-10 rounded-full font-bold">Scarica</a>
+                </div>
+            )}
        </div>
 
-      {/* Navigation Arrows */}
-      <button
-        onClick={prevSlide}
-        className="absolute top-1/2 left-2 -translate-y-1/2 bg-white/10 hover:bg-white/20 p-2 rounded-full text-white transition-colors"
-      >
-        <ChevronLeftIcon className="w-8 h-8" />
-      </button>
-      <button
-        onClick={nextSlide}
-        className="absolute top-1/2 right-2 -translate-y-1/2 bg-white/10 hover:bg-white/20 p-2 rounded-full text-white transition-colors"
-      >
-        <ChevronRightIcon className="w-8 h-8" />
-      </button>
-
-      {/* Indicators / Counter */}
-      <div className="absolute bottom-4 left-0 right-0 flex justify-center items-center pointer-events-none">
-          <div className="bg-black/60 px-4 py-1 rounded-full text-white text-sm font-medium backdrop-blur-sm">
-              {currentIndex + 1} / {media.length}
-          </div>
-      </div>
+      {media.length > 1 && (
+        <>
+            <button
+                onClick={prevSlide}
+                className="absolute top-1/2 left-2 -translate-y-1/2 bg-white/10 hover:bg-white/20 p-2 rounded-full text-white transition-colors"
+            >
+                <ChevronLeftIcon className="w-8 h-8" />
+            </button>
+            <button
+                onClick={nextSlide}
+                className="absolute top-1/2 right-2 -translate-y-1/2 bg-white/10 hover:bg-white/20 p-2 rounded-full text-white transition-colors"
+            >
+                <ChevronRightIcon className="w-8 h-8" />
+            </button>
+            <div className="absolute bottom-4 left-0 right-0 flex justify-center items-center pointer-events-none">
+                <div className="bg-black/60 px-4 py-1 rounded-full text-white text-sm font-medium backdrop-blur-sm">
+                    {currentIndex + 1} / {media.length}
+                </div>
+            </div>
+        </>
+      )}
     </div>
   );
 };

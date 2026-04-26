@@ -1,77 +1,33 @@
 
 # Documentazione Endpoints API
 
-Questa sezione descrive le rotte API richiamate dal frontend. Tutti i dati sono inviati e ricevuti in formato `application/json`.
+## Messaggistica & Inviti
 
-## Autenticazione
-### `POST /auth/login`
-Effettua il login dell'utente.
-- **Payload**: `{ username, password }`
-- **Risposta**: `200 OK` con oggetto `User`.
+### `POST /messages`
+Invia un messaggio o un invito a una board.
+- **Payload**: `{ recipientId, content, type, metadata? }`
+- **Nota**: Per gli inviti, `type` deve essere `'board_invite'` e `metadata` deve contenere `boardId`.
 
-### `POST /auth/register`
-Registra un nuovo account.
-- **Payload**: `{ username, password }`
-- **Risposta**: `201 Created` con oggetto `User`.
+### `POST /messages/:msgId/invite`
+Gestisce la risposta dell'utente a un invito pendente.
+- **Payload**: `{ action: 'accept' | 'reject' }`
+- **Logica lato server**:
+    - Se `accept`: Aggiunge l'utente corrente a `allowedUserIds` della board indicata nel messaggio.
+    - Aggiorna lo stato del messaggio in `accepted` o `rejected`.
+    - Genera una notifica per l'amministratore che ha inviato l'invito.
 
 ---
 
 ## Board & Community
+
 ### `POST /boards`
-Crea una nuova board.
-- **Payload**: `{ name, description, allowAnonymousComments, allowAnonymousPosts, password?, isInviteOnly?, iconUrl?, bannerUrl? }`
-- **Risposta**: `201 Created`.
+Crea una nuova community.
+- **AccessType**: Può essere definito come pubblico, con password o solo invito.
 
-### `POST /boards/:id/moderators`
-Nomina un moderatore per la board.
-- **Payload**: `{ userId }`
-- **Risposta**: `200 OK`.
+### `DELETE /boards/:id/users/:userId`
+Rimuove un utente dalla lista degli autorizzati (revoca dell'invito o dell'accesso pagato).
 
 ---
 
-## Contenuti (Post & Commenti)
-### `POST /posts`
-Crea un post in una board.
-- **Payload**: `{ id, title, content, media, boardId, authorId }`
-- **Risposta**: `201 Created`.
-
-### `POST /votes`
-Invia un voto (Upvote/Downvote).
-- **Payload**: `{ entityId, type, userId }` (type: 'up' | 'down')
-- **Risposta**: `200 OK`.
-
-### `POST /comments`
-Invia un commento o una risposta.
-- **Payload**: `{ id, content, postId, authorId, parentId, media }`
-- **Risposta**: `201 Created`.
-
----
-
-## Messaggistica & Social
-### `POST /messages`
-Invia un messaggio privato o un invito.
-- **Payload**: `{ id, senderId, recipientId, content, media, isEncrypted, type, metadata? }`
-- **Risposta**: `201 Created`.
-
-### `POST /messages/:msgId/invite`
-Risponde a un invito a una board.
-- **Payload**: `{ action }` (action: 'accept' | 'reject')
-- **Risposta**: `200 OK`.
-
----
-
-## Pubblicità (Advertising)
-### `POST /ads`
-Invia una richiesta di sponsorizzazione per una board.
-- **Payload**: `{ id, userId, boardId, title, content, linkUrl, imageUrl }`
-- **Risposta**: `201 Created`.
-
-### `POST /ads/:id/impression`
-Traccia la visualizzazione di un annuncio.
-- **Payload**: nessuno.
-- **Risposta**: `204 No Content`.
-
-### `POST /ads/:id/click`
-Traccia il click su un annuncio.
-- **Payload**: nessuno.
-- **Risposta**: `204 No Content`.
+## Contenuti e Social
+... (Rotte standard per Post, Commenti e Voti)

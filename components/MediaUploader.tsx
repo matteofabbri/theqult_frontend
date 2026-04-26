@@ -1,6 +1,6 @@
 
 import React, { useRef } from 'react';
-import { ImageFileIcon, VideoFileIcon, AudioFileIcon, TrashIcon, CloseIcon } from './Icons';
+import { ImageFileIcon, VideoFileIcon, AudioFileIcon, FileIcon, CloseIcon } from './Icons';
 import type { MediaItem } from '../types';
 
 interface MediaUploaderProps {
@@ -19,19 +19,19 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({ media, onChange }) => {
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      let type: 'image' | 'video' | 'audio' | null = null;
+      let type: 'image' | 'video' | 'audio' | 'file' = 'file';
+      
       if (file.type.startsWith('image/')) type = 'image';
       else if (file.type.startsWith('video/')) type = 'video';
       else if (file.type.startsWith('audio/')) type = 'audio';
 
-      if (type) {
-        const url = await fileToDataUrl(file);
-        newMediaItems.push({
-          id: crypto.randomUUID(),
-          type,
-          url,
-        });
-      }
+      const url = await fileToDataUrl(file);
+      newMediaItems.push({
+        id: crypto.randomUUID(),
+        type,
+        url,
+        name: file.name
+      });
     }
 
     onChange([...media, ...newMediaItems]);
@@ -60,6 +60,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({ media, onChange }) => {
           case 'image': return <ImageFileIcon className="w-6 h-6 text-blue-500" />;
           case 'video': return <VideoFileIcon className="w-6 h-6 text-purple-500" />;
           case 'audio': return <AudioFileIcon className="w-6 h-6 text-orange-500" />;
+          case 'file': return <FileIcon className="w-6 h-6 text-gray-500" />;
           default: return null;
       }
   }
@@ -73,13 +74,13 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({ media, onChange }) => {
           className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors border border-gray-300"
         >
           <span className="text-xl font-bold">+</span>
-          <span>Add Media</span>
+          <span className="text-sm font-bold">Aggiungi File</span>
         </button>
         <input
           type="file"
           ref={fileInputRef}
           onChange={handleFileChange}
-          accept="image/*,video/*,audio/*"
+          accept="*"
           multiple
           className="hidden"
         />
@@ -104,10 +105,10 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({ media, onChange }) => {
               {item.type === 'video' && (
                 <video src={item.url} className="w-full h-full object-cover" />
               )}
-              {item.type === 'audio' && (
-                 <div className="flex flex-col items-center">
-                    <AudioFileIcon className="w-12 h-12 text-gray-400 mb-2" />
-                    <span className="text-xs text-gray-500">Audio File</span>
+              {(item.type === 'audio' || item.type === 'file') && (
+                 <div className="flex flex-col items-center px-2 text-center">
+                    {item.type === 'audio' ? <AudioFileIcon className="w-8 h-8 text-gray-400 mb-1" /> : <FileIcon className="w-8 h-8 text-gray-400 mb-1" />}
+                    <span className="text-[10px] text-gray-500 truncate w-full">{item.name || (item.type === 'audio' ? 'Audio Clip' : 'File')}</span>
                  </div>
               )}
                <div className="absolute bottom-1 left-1 bg-white/80 p-1 rounded-full shadow-sm">
