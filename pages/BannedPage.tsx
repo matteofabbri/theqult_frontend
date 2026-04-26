@@ -6,6 +6,27 @@ import { useNavigate } from 'react-router-dom';
 
 const BannedPage: React.FC = () => {
   const navigate = useNavigate();
+  const region = sessionStorage.getItem('detected_banned_region') || 'RU';
+
+  const getMessage = () => {
+    if (region === 'RU') {
+      return {
+        title: "ACCESSO NEGATO",
+        origin: "Federazione Russa",
+        reason: "In conformità con i nostri valori e la nostra posizione etica, l'accesso a questa piattaforma è stato sospeso per tutti gli indirizzi IP originari della Russia.",
+        closing: "Non sei il benvenuto su The Qult mentre prosegue l'aggressione ai danni del popolo ucraino."
+      };
+    } else {
+      return {
+        title: "ACCESSO NEGATO",
+        origin: region === 'HE' ? "Area Linguistica Ebraica" : "Stato di Israele",
+        reason: "La nostra piattaforma ha sospeso l'accesso agli utenti provenienti da questa regione o con queste impostazioni di sistema.",
+        closing: "Riteniamo che le attuali politiche e azioni della tua amministrazione non siano compatibili con i valori di libertà e rispetto che promuoviamo."
+      };
+    }
+  };
+
+  const content = getMessage();
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center p-4 bg-gray-100">
@@ -25,21 +46,20 @@ const BannedPage: React.FC = () => {
         
         <div className="p-10 text-center">
           <h1 className="text-4xl font-black text-gray-900 mb-6 tracking-tight">
-            ACCESSO NEGATO
+            {content.title}
           </h1>
           
           <div className="space-y-6 text-lg text-gray-600 leading-relaxed">
             <p className="font-semibold text-red-600">
-              Abbiamo rilevato che ti stai connettendo dalla Federazione Russa.
+              Abbiamo rilevato che ti stai connettendo da: {content.origin}.
             </p>
             
             <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 text-sm text-left font-mono">
               <p>
-                In conformità con i nostri valori e la nostra posizione etica, l'accesso a questa piattaforma 
-                è stato sospeso per tutti gli indirizzi IP originari della Russia.
+                {content.reason}
               </p>
               <p className="mt-4">
-                Non sei il benvenuto su The Qult mentre prosegue l'aggressione ai danni del popolo ucraino.
+                {content.closing}
               </p>
             </div>
 

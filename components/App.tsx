@@ -34,10 +34,20 @@ const CountryGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   useEffect(() => {
     const checkCountry = async () => {
       try {
-        // Cache the check result to avoid extra API calls
+        // 1. Check if language is Hebrew
+        const isHebrew = navigator.languages.some(lang => lang.toLowerCase().startsWith('he'));
+        if (isHebrew && location.pathname !== '/banned') {
+          sessionStorage.setItem('detected_banned_region', 'HE');
+          navigate('/banned', { replace: true });
+          setIsChecking(false);
+          return;
+        }
+
+        // 2. Cache the check result to avoid extra API calls
         const cachedCountry = sessionStorage.getItem('user_country_code');
         if (cachedCountry) {
-          if (cachedCountry === 'RU' && location.pathname !== '/banned') {
+          if ((cachedCountry === 'RU' || cachedCountry === 'IL') && location.pathname !== '/banned') {
+            sessionStorage.setItem('detected_banned_region', cachedCountry);
             navigate('/banned', { replace: true });
           }
           setIsChecking(false);
@@ -50,7 +60,8 @@ const CountryGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => 
         
         sessionStorage.setItem('user_country_code', countryCode);
 
-        if (countryCode === 'RU' && location.pathname !== '/banned') {
+        if ((countryCode === 'RU' || countryCode === 'IL') && location.pathname !== '/banned') {
+          sessionStorage.setItem('detected_banned_region', countryCode);
           navigate('/banned', { replace: true });
         }
       } catch (error) {
