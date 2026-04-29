@@ -7,7 +7,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from './Icons';
 import UserAvatar from './UserAvatar';
 
 const TrendingCarousel: React.FC = () => {
-  const { posts, profilePosts, votes, boards } = useData();
+  const { posts, profilePosts, votes, boards, editorials } = useData();
   const { getUserById } = useAuth();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -18,14 +18,14 @@ const TrendingCarousel: React.FC = () => {
   }, [votes]);
 
   const trendingPosts = useMemo(() => {
-    const allPosts: (Post | ProfilePost)[] = [...posts, ...profilePosts];
+    const allPosts: (Post | ProfilePost | Editorial)[] = [...posts, ...profilePosts, ...editorials];
     
     return allPosts
       .map(post => ({ post, score: getPostScore(post.id) }))
       .sort((a, b) => b.score - a.score)
       .slice(0, 10) // Fetch more posts for a scrolling view
       .map(item => item.post);
-  }, [posts, profilePosts, getPostScore]);
+  }, [posts, profilePosts, editorials, getPostScore]);
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
@@ -41,7 +41,7 @@ const TrendingCarousel: React.FC = () => {
     return null;
   }
 
-  const getBackgroundImage = (post: Post | ProfilePost) => {
+  const getBackgroundImage = (post: Post | ProfilePost | Editorial) => {
     if (post.media && post.media.length > 0 && post.media[0].type === 'image') {
         return post.media[0].url;
     }
@@ -50,40 +50,45 @@ const TrendingCarousel: React.FC = () => {
     return match ? match[1] : `https://picsum.photos/seed/${post.id}/800/400`;
   };
 
+  const trendingPostsView = useMemo(() => {
+    return trendingPosts.map((post) => {
+        const author = post.authorId ? getUserById(post.authorId) : undefined;
+        const isEditorial = !('boardId' in post) && !('authorId' in post && 'followingId' in (post as any));
+        const isBoardPost = 'boardId' in post;
+        const board = isBoardPost ? boards.find(b => b.id === (post as Post).boardId) : undefined;
+        const postLink = isBoardPost && board 
+            ? `/b/${board.name}/post/${post.id}` 
+            : (isEditorial ? `/editorials` : (author ? `/u/${author.username}/post/${post.id}` : '#'));
+
+        return (
+        <Link to={postLink} key={post.id} className="block w-80 h-96 flex-shrink-0 relative rounded-md overflow-hidden bg-white border border-gray-200 shadow-sm">
+            <div 
+                className="absolute inset-0 bg-cover bg-center transition-transform duration-300 ease-in-out group-hover:scale-105"
+                style={{ backgroundImage: `url(${getBackgroundImage(post)})` }}
+            >
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+            </div>
+            <div className="relative p-4 flex flex-col justify-end h-full text-white">
+                <h3 className="text-xl font-bold mb-1 line-clamp-2 leading-tight">
+                    {post.title}
+                </h3>
+                <div className="text-sm opacity-90 flex items-center">
+                    <UserAvatar user={author} className="w-5 h-5 mr-2" />
+                    <span>u/{author?.username || 'anonymous'}</span>
+                </div>
+            </div>
+        </Link>
+        );
+    });
+  }, [trendingPosts, boards, getUserById]);
+
   return (
     <div className="relative group">
         <div 
             ref={scrollContainerRef}
             className="flex gap-4 overflow-x-auto pb-2 scroll-smooth scrollbar-hide"
         >
-        {trendingPosts.map((post) => {
-            const author = post.authorId ? getUserById(post.authorId) : undefined;
-            const isBoardPost = 'boardId' in post;
-            const board = isBoardPost ? boards.find(b => b.id === (post as Post).boardId) : undefined;
-            const postLink = isBoardPost && board 
-                ? `/b/${board.name}/post/${post.id}` 
-                : (author ? `/u/${author.username}/post/${post.id}` : '#');
-
-            return (
-            <Link to={postLink} key={post.id} className="block w-72 h-80 flex-shrink-0 relative rounded-md overflow-hidden bg-white border border-gray-200 shadow-sm">
-                <div 
-                    className="absolute inset-0 bg-cover bg-center transition-transform duration-300 ease-in-out group-hover:scale-105"
-                    style={{ backgroundImage: `url(${getBackgroundImage(post)})` }}
-                >
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
-                </div>
-                <div className="relative p-3 flex flex-col justify-end h-full text-white">
-                    <h3 className="text-md font-bold mb-1 line-clamp-2 leading-tight">
-                        {post.title}
-                    </h3>
-                    <div className="text-xs opacity-90 flex items-center">
-                        <UserAvatar user={author} className="w-4 h-4 mr-1.5" />
-                        <span>u/{author?.username || 'anonymous'}</span>
-                    </div>
-                </div>
-            </Link>
-            );
-        })}
+        {trendingPostsView}
         </div>
 
         <button onClick={() => scroll('left')} className="absolute top-1/2 left-0 -translate-y-1/2 -translate-x-1/2 bg-white/80 backdrop-blur-sm text-gray-700 p-1 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity focus:outline-none border border-gray-200 hover:bg-white">

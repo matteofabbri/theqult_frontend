@@ -102,7 +102,26 @@ const SettingsPage: React.FC = () => {
       
       {/* Profile Settings Section */}
       <div className="bg-white p-6 rounded-md border border-gray-200">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">Profile Settings</h2>
+        <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-gray-800">Profile Settings</h2>
+            <div className="flex items-center gap-2">
+                {currentUser.isVerified ? (
+                    <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path></svg>
+                        Verified
+                    </span>
+                ) : currentUser.isPendingVerification ? (
+                    <span className="bg-yellow-100 text-yellow-700 text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
+                        <svg className="w-3 h-3 animate-pulse" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"></path></svg>
+                        Verification Pending
+                    </span>
+                ) : (
+                    <button onClick={() => navigate('/verify')} className="text-xs font-bold text-primary hover:underline">
+                        Verify Identity
+                    </button>
+                )}
+            </div>
+        </div>
         <form onSubmit={handleProfileSubmit} className="space-y-4">
              {profileMessage.text && (
                 <p className={`p-3 rounded-md text-sm ${profileMessage.type === 'success' ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'}`}>

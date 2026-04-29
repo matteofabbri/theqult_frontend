@@ -15,17 +15,9 @@ const HomePage: React.FC = () => {
   const [authModalState, setAuthModalState] = useState<{ isOpen: boolean; view: 'login' | 'signup' }>({ isOpen: false, view: 'login' });
 
   const feedItems = useMemo(() => {
-    // Get the latest editorial
-    const latestEditorial = [...editorials]
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, 1);
-
-    // Get all board posts, sorted by date
-    const sortedBoardPosts = [...posts]
+    return [...posts, ...editorials]
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-    return [...latestEditorial, ...sortedBoardPosts];
-  }, [editorials, posts]);
+  }, [posts, editorials]);
   
   const subscribedBoards = useMemo(() => {
     if (!currentUser) return [];
@@ -57,10 +49,9 @@ const HomePage: React.FC = () => {
         <div className="lg:col-span-3 space-y-4">
           <TrendingCarousel />
           {feedItems.length > 0 ? (
-            feedItems.map(item => {
-              const isEditorial = !('boardId' in item);
-              return <PostCard key={item.id} post={item} isFullView={isEditorial} />;
-            })
+            feedItems.map(item => (
+              <PostCard key={item.id} post={item} />
+            ))
           ) : (
             <div className="text-center text-gray-500 p-8 bg-white rounded-md">
               <h2 className="text-xl font-semibold">No posts yet.</h2>

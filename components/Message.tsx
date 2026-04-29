@@ -3,8 +3,8 @@ import React, { useMemo } from 'react';
 import type { Message as MessageType, User } from '../types';
 import UserAvatar from './UserAvatar';
 import PostMedia from './PostMedia';
-import { WalletIcon, LockIcon, CheckIcon, CloseIcon } from './Icons';
-import { mockDecrypt, useData } from '../hooks/useStore';
+import { CheckIcon, CloseIcon } from './Icons';
+import { useData } from '../hooks/useStore';
 
 interface MessageProps {
     message: MessageType;
@@ -23,16 +23,9 @@ const Message: React.FC<MessageProps> = ({ message, author, isCurrentUser }) => 
             : 'bg-gray-200 text-gray-800';
     
     const hasMedia = message.media && message.media.length > 0;
-    // Fixed kopekiAmount access
-    const hasKopeki = !!(message.kopekiAmount && message.kopekiAmount > 0);
     const isInvite = message.type === 'board_invite';
 
-    const displayContent = useMemo(() => {
-        if (message.isEncrypted && message.content) {
-            return mockDecrypt(message.content);
-        }
-        return message.content;
-    }, [message.content, message.isEncrypted]);
+    const displayContent = message.content;
 
     const handleAccept = () => {
         if (!isCurrentUser) { 
@@ -93,17 +86,6 @@ const Message: React.FC<MessageProps> = ({ message, author, isCurrentUser }) => 
                     </div>
                 )}
 
-                {/* Kopeki Transfer */}
-                {!isNotification && hasKopeki && (
-                     <div className={`flex items-center justify-between ${hasMedia ? 'px-2 py-1' : 'mb-1'}`}>
-                         <div className="flex items-center gap-2">
-                             <WalletIcon className="w-5 h-5" />
-                             {/* Fixed kopekiAmount access */}
-                             <span className="font-bold text-lg">{message.kopekiAmount?.toLocaleString()} K</span>
-                         </div>
-                     </div>
-                )}
-
                 {/* Media */}
                 {!isNotification && hasMedia && (
                     <div className="mb-1">
@@ -117,11 +99,6 @@ const Message: React.FC<MessageProps> = ({ message, author, isCurrentUser }) => 
                         <p className="text-sm" style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
                             {displayContent}
                         </p>
-                        {message.isEncrypted && (
-                            <div className="mb-0.5" title="End-to-End Encrypted">
-                                <LockIcon className={`w-3 h-3 ${isCurrentUser ? 'text-white/70' : 'text-gray-500'}`} />
-                            </div>
-                        )}
                     </div>
                 )}
             </div>

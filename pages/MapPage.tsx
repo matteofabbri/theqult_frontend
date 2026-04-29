@@ -80,50 +80,36 @@ const MapPage: React.FC = () => {
         return feature ? feature.properties.ADMIN : selectedId;
     }, [selectedId, geoData]);
 
-    const assignment = useMemo(() => selectedId ? territoryAssignments.find(a => a.territoryId === selectedId) : null, [territoryAssignments, selectedId]);
-    const ambassador = useMemo(() => assignment ? getUserById(assignment.userId) : null, [assignment, getUserById]);
-
-    const filteredUsers = useMemo(() => {
-        if (!searchTerm.trim()) return [];
-        return users.filter(u => u.username.toLowerCase().includes(searchTerm.toLowerCase())).slice(0, 5);
-    }, [users, searchTerm]);
-
-    const handleAssign = (userId: string) => {
-        if (selectedId) {
-            assignTerritory(selectedId, userId);
-            setSearchTerm('');
-        }
-    };
-
     const mapStyle = (feature: any) => {
         const territoryId = feature.properties.ISO_A3;
         const isSelected = selectedId === territoryId;
 
         return {
-            fillColor: 'transparent',
+            fillColor: isSelected ? '#3B82F6' : 'transparent',
             weight: isSelected ? 2 : 1,
             opacity: 1,
-            color: isSelected ? '#FF4500' : '#4b5563',
-            fillOpacity: 0,
+            color: isSelected ? '#2563EB' : '#4b5563',
+            fillOpacity: isSelected ? 0.2 : 0,
         };
     };
 
     const onEachFeature = (feature: any, layer: L.Layer) => {
         layer.on({
-            click: (e) => {
+            click: (e: any) => {
                 const territoryId = feature.properties.ISO_A3;
                 setSelectedId(territoryId);
                 L.DomEvent.stopPropagation(e);
             },
-            mouseover: (e) => {
+            mouseover: (e: any) => {
                 const layer = e.target;
                 layer.setStyle({
-                    fillOpacity: 0.9,
+                    fillOpacity: 0.1,
+                    fillColor: '#3B82F6',
                     weight: 1.5,
                     color: '#6b7280'
                 });
             },
-            mouseout: (e) => {
+            mouseout: (e: any) => {
                 const layer = e.target;
                 const territoryId = feature.properties.ISO_A3;
                 if (selectedId !== territoryId) {
@@ -142,7 +128,7 @@ const MapPage: React.FC = () => {
                     <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-white z-20">
                         <div className="flex items-center gap-3">
                             <h2 className="text-sm font-black text-gray-900 uppercase tracking-widest italic">
-                                Worldwide Operations Map
+                                Worldwide Map
                             </h2>
                         </div>
                     </div>
@@ -193,72 +179,19 @@ const MapPage: React.FC = () => {
                                 </div>
 
                                 <div className="pt-6 border-t border-gray-100">
-                                    <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                                        <UsersIcon className="w-4 h-4" /> Delegazione Territoriale
-                                    </h3>
-                                    
-                                    {ambassador ? (
-                                        <div className="bg-gray-900 rounded-2xl p-5 text-white shadow-xl relative overflow-hidden">
-                                            <div className="flex items-center gap-4 mb-5 relative z-10">
-                                                <UserAvatar user={ambassador} className="w-14 h-14 border-2 border-primary shadow-lg" />
-                                                <div className="min-w-0">
-                                                    <Link to={`/u/${ambassador.username}`} className="font-black text-xl hover:text-primary transition-colors block truncate">
-                                                        u/{ambassador.username}
-                                                    </Link>
-                                                    <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mt-0.5">Responsabile Locale</p>
-                                                </div>
-                                            </div>
-                                            <div className="flex gap-2 relative z-10">
-                                                <Link to={`/u/${ambassador.username}`} className="flex-1 bg-white text-gray-900 font-black py-2.5 rounded-xl text-[10px] text-center hover:bg-primary hover:text-white transition-all uppercase tracking-widest">Dossier</Link>
-                                                <Link to={`/messages/${ambassador.username}`} className="px-4 bg-primary text-white rounded-xl hover:bg-orange-600 transition-all flex items-center justify-center shadow-md">
-                                                    <MessageIcon className="w-4 h-4" />
-                                                </Link>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl p-8 text-center opacity-60">
-                                            <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">In Attesa di Incarico</p>
-                                        </div>
-                                    )}
+                                    <p className="text-sm text-gray-600">
+                                        Viewing details for {selectedTerritoryName}. This territory is part of the global Qult network.
+                                    </p>
                                 </div>
-
-                                {currentUser && isAdmin(currentUser.id) && (
-                                    <div className="pt-6 mt-auto border-t border-gray-100">
-                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3">Assegna u/ al Settore</label>
-                                        <div className="relative">
-                                            <input 
-                                                type="text" 
-                                                value={searchTerm}
-                                                onChange={(e) => setSearchTerm(e.target.value)}
-                                                className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3.5 text-xs focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-bold text-gray-900 shadow-inner"
-                                                placeholder="Ricerca utente..."
-                                            />
-                                            {filteredUsers.length > 0 && (
-                                                <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-200 rounded-2xl shadow-2xl z-[1050] overflow-hidden divide-y divide-gray-50 animate-in fade-in slide-in-from-bottom-2">
-                                                    {filteredUsers.map(user => (
-                                                        <button 
-                                                            key={user.id}
-                                                            onClick={() => handleAssign(user.id)}
-                                                            className="w-full px-4 py-3 flex items-center gap-3 hover:bg-primary hover:text-white text-left transition-all"
-                                                        >
-                                                            <UserAvatar user={user} className="w-8 h-8" />
-                                                            <span className="font-bold text-sm">u/{user.username}</span>
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
                             </div>
                         ) : (
                             <div className="flex-1 flex flex-col items-center justify-center text-center p-10 opacity-30 select-none">
                                 <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-6 border border-gray-200">
                                     <svg className="w-10 h-10 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 20l-5.447-2.724A2 2 0 013 15.487V6a2 2 0 011.106-1.789l5.447-2.724a2 2 0 011.894 0l5.447 2.724A2 2 0 0118 6v9.487a2 2 0 01-1.106 1.789L11.447 20a2 2 0 01-1.894 0z" /></svg>
                                 </div>
-                                <h2 className="text-xl font-black text-gray-900 uppercase italic tracking-tighter">Database Locale</h2>
+                                <h2 className="text-xl font-black text-gray-900 uppercase italic tracking-tighter">Region Database</h2>
                                 <p className="text-[10px] text-gray-400 font-bold uppercase mt-2 tracking-widest leading-relaxed">
-                                    Seleziona un'area geografica sulla mappa per interrogare i record territoriali.
+                                    Select a country on the map to view regional information.
                                 </p>
                             </div>
                         )}

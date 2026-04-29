@@ -11,17 +11,17 @@ const BannedPage: React.FC = () => {
   const getMessage = () => {
     if (region === 'RU') {
       return {
-        title: "ACCESSO NEGATO",
-        origin: "Federazione Russa",
-        reason: "In conformità con i nostri valori e la nostra posizione etica, l'accesso a questa piattaforma è stato sospeso per tutti gli indirizzi IP originari della Russia.",
-        closing: "Non sei il benvenuto su The Qult mentre prosegue l'aggressione ai danni del popolo ucraino."
+        title: "ACCESS DENIED",
+        origin: "Russian Federation",
+        reason: "In accordance with our values and ethical stance, access to this platform has been suspended for all IP addresses originating from Russia.",
+        closing: "You are not welcome on The Qult while the aggression against the Ukrainian people continues."
       };
     } else {
       return {
-        title: "ACCESSO NEGATO",
-        origin: region === 'HE' ? "Area Linguistica Ebraica" : "Stato di Israele",
-        reason: "La nostra piattaforma ha sospeso l'accesso agli utenti provenienti da questa regione o con queste impostazioni di sistema.",
-        closing: "Riteniamo che le attuali politiche e azioni della tua amministrazione non siano compatibili con i valori di libertà e rispetto che promuoviamo."
+        title: "ACCESS DENIED",
+        origin: region === 'HE' ? "Hebrew Language Area" : "State of Israel",
+        reason: "Our platform has suspended access for users from this region or with these system settings.",
+        closing: "We believe that the current policies and actions in your region are not compatible with the values of freedom and respect that we promote."
       };
     }
   };
@@ -51,7 +51,7 @@ const BannedPage: React.FC = () => {
           
           <div className="space-y-6 text-lg text-gray-600 leading-relaxed">
             <p className="font-semibold text-red-600">
-              Abbiamo rilevato che ti stai connettendo da: {content.origin}.
+              We detected that you are connecting from: {content.origin}.
             </p>
             
             <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 text-sm text-left font-mono">
@@ -64,7 +64,7 @@ const BannedPage: React.FC = () => {
             </div>
 
             <p className="text-sm italic">
-              "La libertà non è un dono della natura, ma un compito che dobbiamo realizzare ogni giorno."
+              "Freedom is not a gift of nature, but a task that we must realize every day."
             </p>
           </div>
 
@@ -74,14 +74,14 @@ const BannedPage: React.FC = () => {
               className="flex items-center justify-center gap-2 px-8 py-4 bg-gray-900 text-white rounded-xl font-bold hover:bg-gray-800 transition-all group"
             >
               <Globe size={20} className="group-hover:rotate-12 transition-transform" />
-              Esci dal sito
+              Leave website
             </button>
             <button 
               onClick={() => navigate('/')}
               className="flex items-center justify-center gap-2 px-8 py-4 bg-white border-2 border-gray-200 text-gray-600 rounded-xl font-bold hover:border-gray-900 hover:text-gray-900 transition-all"
             >
               <ArrowLeft size={20} />
-              Torna indietro
+              Go back
             </button>
           </div>
         </div>

@@ -9,11 +9,10 @@ import { SettingsIcon, CheckIcon, CreatePostIcon } from '../components/Icons';
 import BoardIcon from '../components/BoardIcon';
 import AuthModal from '../components/AuthModal';
 import CreatePostModal from '../components/CreatePostModal';
-import AdUnit from '../components/AdUnit';
 
 const BoardPage: React.FC = () => {
   const { boardName } = useParams<{ boardName: string }>();
-  const { posts, getBoardByName, isSubscribed, subscribe, unsubscribe, isBoardAdmin, unlockBoard, isBoardUnlocked, getActiveAdsForBoard } = useData();
+  const { posts, getBoardByName, isSubscribed, subscribe, unsubscribe, isBoardAdmin, unlockBoard, isBoardUnlocked } = useData();
   const { currentUser, isAdmin } = useAuth();
   const [isAuthModalOpen, setAuthModalOpen] = useState(false);
   const [isCreatePostModalOpen, setCreatePostModalOpen] = useState(false);
@@ -21,7 +20,6 @@ const BoardPage: React.FC = () => {
   const [passwordError, setPasswordError] = useState('');
   
   const board = boardName ? getBoardByName(boardName) : undefined;
-  const activeAds = useMemo(() => board ? getActiveAdsForBoard(board.id) : [], [board, getActiveAdsForBoard]);
 
   if (!board) return <NotFoundPage />;
 

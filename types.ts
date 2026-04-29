@@ -8,31 +8,9 @@ export interface User {
   iconUrl?: string;
   bannerUrl?: string;
   bio?: string;
-  junkSenders?: string[];
   countryCode?: string;
-  publicKey?: string;
-  // Added properties for wallet and verification
-  kopeki?: number;
-  savedCards?: CreditCard[];
-  savedIbans?: Iban[];
   isVerified?: boolean;
   isPendingVerification?: boolean;
-  subscriptionFee?: number;
-}
-
-// Added CreditCard interface
-export interface CreditCard {
-  id: string;
-  last4: string;
-  expiry: string;
-  brand: string;
-}
-
-// Added Iban interface
-export interface Iban {
-  id: string;
-  iban: string;
-  label: string;
 }
 
 export interface Board {
@@ -50,15 +28,23 @@ export interface Board {
   password?: string;
   isInviteOnly?: boolean;
   allowedUserIds?: string[];
-  // Added entryFee property
-  entryFee?: number;
 }
 
 export interface MediaItem {
   id: string;
   type: 'image' | 'video' | 'audio' | 'file';
   url: string;
-  name?: string; // Nome originale del file
+  name?: string;
+}
+
+export interface Editorial {
+  id: string;
+  title: string;
+  content: string;
+  media?: MediaItem[];
+  authorId: string;
+  createdAt: string;
+  countryCode?: string;
 }
 
 export interface Post {
@@ -69,6 +55,7 @@ export interface Post {
   boardId: string;
   authorId: string | null;
   createdAt: string;
+  countryCode?: string;
 }
 
 export interface ProfilePost {
@@ -78,28 +65,18 @@ export interface ProfilePost {
   media?: MediaItem[];
   authorId: string;
   createdAt: string;
-  // Added price and unlockedUserIds for exclusive content
-  price?: number;
-  unlockedUserIds?: string[];
-}
-
-export interface Editorial {
-  id: string;
-  title: string;
-  content: string;
-  media?: MediaItem[];
-  authorId: string;
-  createdAt: string;
+  countryCode?: string;
 }
 
 export interface Comment {
-  id:string;
+  id: string;
   content: string;
   postId: string;
   authorId: string | null;
   parentId: string | null;
   createdAt: string;
   media?: MediaItem[];
+  countryCode?: string;
 }
 
 export interface Message {
@@ -108,7 +85,6 @@ export interface Message {
   recipientId: string;
   content: string;
   media?: MediaItem[];
-  isEncrypted?: boolean;
   createdAt: string;
   readAt?: string;
   type?: 'text' | 'board_invite' | 'notification';
@@ -117,8 +93,6 @@ export interface Message {
     boardName?: string;
     inviteStatus?: 'pending' | 'accepted' | 'rejected';
   };
-  // Added kopekiAmount for P2P transfers
-  kopekiAmount?: number;
 }
 
 export type VoteType = 'up' | 'down';
@@ -137,58 +111,4 @@ export interface Subscription {
 export interface Follow {
   followerId: string;
   followingId: string;
-}
-
-export interface Advertisement {
-  id: string;
-  boardId: string;
-  userId: string;
-  title: string;
-  content: string;
-  imageUrl?: string;
-  linkUrl: string;
-  status: 'pending' | 'approved' | 'rejected' | 'active' | 'completed';
-  views: number;
-  clicks: number;
-  createdAt: string;
-  // Added ad specific properties
-  budget: number;
-  spent: number;
-  model: 'CPC' | 'CPM';
-  bidAmount: number;
-}
-
-// Added Transaction interface for wallet history
-export interface Transaction {
-  id: string;
-  userId: string;
-  type: 'buy' | 'sell' | 'fee_payment' | 'fee_income' | 'award_given' | 'award_received' | 'post_unlock' | 'post_income' | 'p2p_transfer' | 'ad_payment' | 'ad_refund';
-  amount: number;
-  currencyAmount?: number;
-  description: string;
-  createdAt: string;
-}
-
-// Added UserSubscription interface
-export interface UserSubscription {
-  subscriberId: string;
-  creatorId: string;
-  startedAt: string;
-}
-
-// Added Award interface
-export interface Award {
-  id: string;
-  typeId: string;
-  senderId: string;
-  receiverId: string;
-  entityId: string;
-  entityType: 'post' | 'comment';
-  createdAt: string;
-}
-
-export interface TerritoryAssignment {
-  territoryId: string; // ISO Code
-  userId: string;
-  assignedAt: string;
 }

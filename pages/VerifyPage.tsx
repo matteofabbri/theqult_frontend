@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { CheckIcon, LockIcon, MastercardIcon, BankIcon, ImageFileIcon } from '../components/Icons';
 
 const VerifyPage: React.FC = () => {
-  const { currentUser, updateProfile, addCreditCard, addIban } = useAuth();
+  const { currentUser, updateProfile } = useAuth();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -18,12 +18,6 @@ const VerifyPage: React.FC = () => {
   const [zipCode, setZipCode] = useState('');
   const [country, setCountry] = useState('');
   const [taxId, setTaxId] = useState('');
-
-  // Financial Info State
-  const [cardNumber, setCardNumber] = useState('');
-  const [cardExpiry, setCardExpiry] = useState('');
-  const [cardCvc, setCardCvc] = useState('');
-  const [iban, setIban] = useState('');
 
   // Document Upload State
   const [idFront, setIdFront] = useState<File | null>(null);
@@ -47,29 +41,10 @@ const VerifyPage: React.FC = () => {
         return;
     }
 
-    if (cardNumber.length < 12 || !cardExpiry || !cardCvc) {
-        alert("Please provide valid credit card details for identity verification.");
-        return;
-    }
-
     setIsSubmitting(true);
     
     // Simulate submission delay
     setTimeout(() => {
-        // Save financial details
-        addCreditCard({
-            last4: cardNumber.slice(-4),
-            expiry: cardExpiry,
-            brand: 'Mastercard' // Mock logic
-        });
-
-        if (iban) {
-            addIban({
-                iban: iban,
-                label: 'Verified Bank Account'
-            });
-        }
-
         // Set pending status instead of verifying immediately
         updateProfile({ isPendingVerification: true, isVerified: false });
         setIsSubmitting(false);
@@ -93,7 +68,7 @@ const VerifyPage: React.FC = () => {
                 <LockIcon className="w-8 h-8" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900">Identity Verification</h1>
-            <p className="text-gray-500 mt-2">To comply with financial regulations (KYC/AML) and unlock your Kopeki wallet, we need to verify your identity.</p>
+            <p className="text-gray-500 mt-2">To comply with platform security and unlock full profile features, we need to verify your identity.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-8">
@@ -147,81 +122,9 @@ const VerifyPage: React.FC = () => {
                 </div>
             </div>
 
-            {/* 2. Financial Information */}
+            {/* 2. Document Verification */}
             <div className="space-y-4">
-                <h2 className="text-lg font-semibold text-gray-800 border-b border-gray-100 pb-2">2. Financial Information</h2>
-                <p className="text-xs text-gray-500">A valid payment method is required to verify your identity. You will not be charged.</p>
-                
-                {/* Credit Card */}
-                <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-                    <div className="flex items-center gap-2 mb-3">
-                        <MastercardIcon className="w-6 h-6" />
-                        <h3 className="font-bold text-gray-700 text-sm">Credit / Debit Card</h3>
-                    </div>
-                    <div className="space-y-3">
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Card Number</label>
-                            <input 
-                                type="text" 
-                                required 
-                                value={cardNumber} 
-                                onChange={e => setCardNumber(e.target.value)} 
-                                className="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-primary"
-                                placeholder="0000 0000 0000 0000"
-                            />
-                        </div>
-                        <div className="flex gap-4">
-                            <div className="flex-1">
-                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Expiry</label>
-                                <input 
-                                    type="text" 
-                                    required 
-                                    value={cardExpiry} 
-                                    onChange={e => setCardExpiry(e.target.value)} 
-                                    className="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-primary"
-                                    placeholder="MM/YY"
-                                />
-                            </div>
-                            <div className="flex-1">
-                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">CVC</label>
-                                <input 
-                                    type="text" 
-                                    required 
-                                    value={cardCvc} 
-                                    onChange={e => setCardCvc(e.target.value)} 
-                                    className="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-primary"
-                                    placeholder="123"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* IBAN */}
-                <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-                    <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                            <BankIcon className="w-6 h-6 text-gray-600" />
-                            <h3 className="font-bold text-gray-700 text-sm">Bank Account (IBAN)</h3>
-                        </div>
-                        <span className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded">Optional</span>
-                    </div>
-                    <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">IBAN for Withdrawals</label>
-                        <input 
-                            type="text" 
-                            value={iban} 
-                            onChange={e => setIban(e.target.value)} 
-                            className="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-primary"
-                            placeholder="IT00 0000 0000 0000..."
-                        />
-                    </div>
-                </div>
-            </div>
-
-            {/* 3. Document Verification */}
-            <div className="space-y-4">
-                <h2 className="text-lg font-semibold text-gray-800 border-b border-gray-100 pb-2">3. Identity Documents</h2>
+                <h2 className="text-lg font-semibold text-gray-800 border-b border-gray-100 pb-2">2. Identity Documents</h2>
                 <p className="text-xs text-gray-500">Please upload a clear photo of your government-issued ID (Driver's License, Passport, or National ID).</p>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

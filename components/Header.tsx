@@ -28,14 +28,14 @@ const Header: React.FC = () => {
     <>
       <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200">
         <div className="container mx-auto px-4 py-2 flex justify-between items-center">
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-16">
             <Link to="/" className="text-2xl font-bold text-primary">
               <span className="text-gray-800">The_</span>Qult
             </Link>
-            <nav className="hidden md:flex items-center gap-6">
+            <nav className="hidden md:flex items-center gap-12">
                 <Link to="/editorials" className="font-semibold text-gray-700 hover:text-primary transition-colors flex items-center gap-1.5">
-                <NewspaperIcon className="w-5 h-5" />
-                <span>Editorials</span>
+                    <NewspaperIcon className="w-5 h-5" />
+                    <span>Editorials</span>
                 </Link>
                 <Link to="/map" className="font-semibold text-gray-700 hover:text-primary transition-colors flex items-center gap-1.5">
                 <MapIcon className="w-5 h-5" />
@@ -43,7 +43,7 @@ const Header: React.FC = () => {
                 </Link>
             </nav>
           </div>
-          <div className="flex items-center gap-2 md:gap-4">
+          <div className="flex items-center gap-4 md:gap-6">
             
             <button
                 onClick={handleCreateBoard}
@@ -64,7 +64,7 @@ const Header: React.FC = () => {
                 </Link>
             )}
             {currentUser ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-4">
                 <UserAvatar user={currentUser} className="w-8 h-8 hidden sm:block" />
                 <Link to={`/u/${currentUser.username}`} className="font-semibold text-gray-700 hidden sm:block hover:underline">{currentUser.username}</Link>
                 <Link to="/settings" title="User Settings" aria-label="User Settings" className="p-2 rounded-full text-gray-600 hover:bg-gray-200 hover:text-primary transition-colors">
@@ -78,7 +78,7 @@ const Header: React.FC = () => {
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-4">
                 <button
                   onClick={() => setAuthModalState({ isOpen: true, view: 'login' })}
                   className="px-4 py-2 text-sm font-semibold bg-green-600 text-white rounded-full hover:bg-green-700 transition-colors"
